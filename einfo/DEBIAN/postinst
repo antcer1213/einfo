@@ -1,0 +1,27 @@
+#!/bin/sh
+
+chown -R $USER /opt/eInfo/info
+
+update-pciids
+dmidecode                 > /opt/eInfo/info/dmiinfo
+iwconfig                  > /opt/eInfo/info/netintreminfo
+ifconfig                  > /opt/eInfo/info/netintlocinfo
+lshw -C display -quiet    > /opt/eInfo/info/viddevinfo
+lshw -C network -quiet    > /opt/eInfo/info/netdevinfo
+lshw -C multimedia -quiet > /opt/eInfo/info/auddevinfo
+
+sed -i 's|exit 0||g' /etc/rc.local
+sed -i 's|dmidecode > /opt/eInfo/info/dmiinfo||g' /etc/rc.local
+sed -i 's|iwconfig > /opt/eInfo/info/netintreminfo||g' /etc/rc.local
+sed -i 's|ifconfig > /opt/eInfo/info/netintlocinfo||g' /etc/rc.local
+sed -i 's|lshw -C display -quiet > /opt/eInfo/info/viddevinfo||g' /etc/rc.local
+sed -i 's|lshw -C network -quiet > /opt/eInfo/info/netdevinfo||g' /etc/rc.local
+sed -i 's|lshw -C multimedia -quiet > /opt/eInfo/info/auddevinfo||g' /etc/rc.local
+
+echo "dmidecode > /opt/eInfo/info/dmiinfo" >> /etc/rc.local
+echo "iwconfig > /opt/eInfo/info/netintreminfo" >> /etc/rc.local
+echo "ifconfig > /opt/eInfo/info/netintlocinfo" >> /etc/rc.local
+echo "lshw -C display -quiet > /opt/eInfo/info/viddevinfo" >> /etc/rc.local
+echo "lshw -C network -quiet > /opt/eInfo/info/netdevinfo" >> /etc/rc.local
+echo "lshw -C multimedia -quiet > /opt/eInfo/info/auddevinfo" >> /etc/rc.local
+echo "exit 0" >> /etc/rc.local

@@ -1,0 +1,2 @@
+#!/bin/bash
+python /opt/eInfo/einfo.py

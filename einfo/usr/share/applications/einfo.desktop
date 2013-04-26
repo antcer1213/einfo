@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=eInfo
+Exec=einfo
+Type=Application
+GenericName=System Information
+Comment=Gives detailed system information.
+Icon=system
+MimeType=
+Categories=System;
+Hidden=false
+NoDisplay=false
+StartupNotify=false
+Terminal=false
