@@ -1,8 +1,4 @@
 #!/bin/sh
-chmod +x /etc/init.d/sysinfoupdate
-update-rc.d -f sysinfoupdate start 99 2 3 4 5 .
-
-chown -R $USER /opt/eInfo/info
 
 update-pciids
 dmidecode                 > /opt/eInfo/info/dmiinfo
