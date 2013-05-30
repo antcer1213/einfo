@@ -2,6 +2,38 @@
 # encoding: utf-8
 import os
 import elementary as elm
+#~ import subprocess
+#~ import os
+#~ import time
+#~
+#~ commands    = [
+    #~ "dmidecode",
+    #~ "ifconfig",
+    #~ "lshw",
+    #~ "iwconfig"]
+#~ files       = [
+    #~ "/opt/eInfo/info/dmiinfo",
+    #~ "/opt/eInfo/info/netintlocinfo",
+    #~ "/opt/eInfo/info/netintreminfo",
+    #~ "/opt/eInfo/info/viddevinfo",
+    #~ "/opt/eInfo/info/netdevinfo",
+    #~ "/opt/eInfo/info/auddevinfo"]
+#~
+#~
+#~ processes = set()
+#~
+#~ for i in range(len(commands)):
+    #~ if i == 2:
+        #~ processes.add(subprocess.Popen([commands[i], "-C", "display", "-quiet", ">", files[3]]))
+        #~ processes.add(subprocess.Popen([commands[i], "-C", "network", "-quiet", ">", files[4]]))
+        #~ processes.add(subprocess.Popen([commands[i], "-C", "multimedia", "-quiet", ">", files[5]]))
+    #~ else:
+        #~ processes.add(subprocess.Popen([commands[i], ">", files[i]]))
+#~
+#~ for p in processes:
+    #~ if p.poll() is None:
+        #~ p.wait()
+
 
 """eInfo
 
@@ -178,7 +210,7 @@ class eInfo(object):
         generalsys.uptime(uptimeinfo)
 
         bt = elm.Button(self.win)
-        self.icon(None, "view-refresh", False, False, bt)
+        self.icon(None, "refresh", False, False, bt)
         self.size_hints(bt, [0.3, 0.0])
         bt.callback_clicked_add(lambda x: generalsys.uptime(uptimeinfo))
         hor.pack_end(bt)
@@ -252,7 +284,7 @@ class eInfo(object):
         hs.show()
 
         bt = elm.Button(self.win)
-        self.icon(None, "view-refresh", False, False, bt)
+        self.icon(None, "refresh", False, False, bt)
         self.size_hints(bt, [0.05, 0.0])
         bt.callback_clicked_add(lambda o : gencpuinfo())
         hor.pack_end(bt)
@@ -412,7 +444,7 @@ class eInfo(object):
         hs.show()
 
         bt = elm.Button(self.win)
-        self.icon(None, "view-refresh", False, False, bt)
+        self.icon(None, "refresh", False, False, bt)
         self.size_hints(bt, [0.058, 0.0])
         bt.callback_clicked_add(genmeminfo)
         hor.pack_end(bt)
@@ -676,8 +708,8 @@ class eInfo(object):
 
             self.lst(lstbox, hwinfo.mobo_info())
 
-            moboname = ["Motherboard Information", "BIOS Information", "Device Information", "Memory Information", "Battery Information"]
-            moboinfo = [hwinfo.mobo_info, hwinfo.bios_info, hwinfo.sys_info, hwinfo.mem_info, hwinfo.bat_info]
+            moboname = ["Motherboard Information", "BIOS Information", "System Unit Information", "Memory Information", "Device Information", "Battery Information"]
+            moboinfo = [hwinfo.mobo_info, hwinfo.bios_info, hwinfo.sys_info, hwinfo.mem_info, hwinfo.pci_info, hwinfo.bat_info]
 
             for i in range(5):
                 ALPHA[i] = hs.item_add(moboname[i])
@@ -763,7 +795,7 @@ class eInfo(object):
 
             self.lst(lstbox, hwinfo.net_info())
 
-            moboname = ["Network Port Information", "Network Device Information", "Local Network Interface Information", "Remote Network Interface Information"]
+            moboname = ["Network Port Information", "Network Device Information", "Local Network Information", "Remote Network Information"]
             moboinfo = [hwinfo.net_info, hwinfo.net_dev_info, hwinfo.net_int_loc_info, hwinfo.net_int_rem_info]
 
             for i in range(4):
@@ -797,11 +829,14 @@ class eInfo(object):
         infobox.show()
         return infobox
 
-    def separator(self, vbox):
+    def separator(self, vbox=None):
         sep = elm.Separator(self.win)
         sep.horizontal_set(True)
-        vbox.pack_end(sep)
-        sep.show()
+        if vbox:
+            vbox.pack_end(sep)
+            sep.show()
+        else:
+            return sep
 
     def box(self, infobox, dim=False, vert=False):
         hor = elm.Box(self.win)
@@ -863,6 +898,11 @@ class eInfo(object):
         if type(label) is list:
             for x in label:
                 lst.item_append("            %s" %x)
+        elif "<SEP>" in label:
+            ic = elm.Image(self.win)
+            ic.file_set("/opt/eInfo/images/sep.png")
+            ic.resizable_set(True, True)
+            lst.item_append(" ", ic, None, None)
         elif child:
             lst.item_append(" -" + label)
         else:

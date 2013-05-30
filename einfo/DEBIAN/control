@@ -3,7 +3,7 @@ Version: 0.1
 Section: main
 Priority: optional
 Architecture: all
-Depends: python-elementary, python-evas, python-ecore
+Depends: python-elementary, python-evas, python-ecore, python-dmidecode
 Maintainer: Anthony Cervantes
 Description: eInfo (System Information)
  A simple Elm program to give detailed system information.
