@@ -1,9 +1,0 @@
-#!/bin/sh
-
-update-pciids
-dmidecode                 > /opt/eInfo/info/dmiinfo
-ifconfig                  > /opt/eInfo/info/netintlocinfo
-lshw -C display -quiet    > /opt/eInfo/info/viddevinfo
-lshw -C network -quiet    > /opt/eInfo/info/netdevinfo
-lshw -C multimedia -quiet > /opt/eInfo/info/auddevinfo
-iwconfig                  > /opt/eInfo/info/netintreminfo
