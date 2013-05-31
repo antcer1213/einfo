@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=eInfo
-Exec=einfo
+Exec=sudo /opt/eInfo/einfo.py
 Type=Application
 GenericName=System Information
 Comment=Gives detailed system information.

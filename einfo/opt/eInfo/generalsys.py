@@ -16,7 +16,18 @@ def os_release(entry):
     entry.entry_set(osrel)
 
 def e_ver(entry):
-    entry.entry_set("v0.17.1")
+    try:
+        with open("/usr/lib/pkgconfig/enlightenment.pc") as file:
+            data = file.readlines()
+        data.reverse()
+        for line in data:
+            if line.startswith("Version: "):
+                ever = line.split()[1]
+    except:
+        ever = "Not installed"
+
+
+    entry.entry_set("v%s"%ever)
 
 def os_type(entry):
     with open("/proc/sys/kernel/ostype") as file:

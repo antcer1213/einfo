@@ -88,9 +88,9 @@ class eInfo(object):
 
         def timer_func():
             from ecore import Timer
-            Timer(0.5, vipbox)
+            Timer(0.6, vipbox)
 
-        win = self.win = elm.StandardWindow("eInfo", "eInfo")
+        win = self.win = elm.StandardWindow("einfo", "eInfo")
         win.callback_delete_request_add(lambda o: elm.exit())
         win.resize(440, 285)
         win.show()
