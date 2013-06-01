@@ -63,6 +63,8 @@ class CPU_info():
             if x.startswith("flags"):
                 if " lm " in x:
                     entry.entry_set("64bit")
+                elif " rm " in x:
+                    entry.entry_set("16bit")
                 else:
                     entry.entry_set("32bit")
                 break
@@ -119,8 +121,9 @@ class CPU_info():
                 fam = x.split(":")[1].lstrip(" ")
                 break
         for x in self.data[i]:
-            if x.startswith("model		:"):
-                mod = x.split(":")[1].lstrip(" ")
+            y = x.split()
+            if y[0] == "model" and y[1] == ":":
+                mod = y[2]
                 break
         for x in self.data[i]:
             if x.startswith("stepping"):
