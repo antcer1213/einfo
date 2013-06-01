@@ -38,7 +38,10 @@ def e_ver(entry=False):
 def os_type(entry=False):
     with open("/proc/sys/kernel/ostype") as file:
         ostype = file.readline()
-    entry.entry_set(ostype)
+    if entry:
+        entry.entry_set(ostype)
+    else:
+        return ostype
 
 def kernel_info(entry=False, os=False, ver=False):
     with open("/proc/sys/kernel/osrelease") as file:
@@ -122,13 +125,20 @@ def installed_pkgs(entry=False):
 def gcc_info(entry=False):
     gcc = "/usr/lib/gcc"
     test = 0
+    if "i" in kernel_arch():
+        arch = "i"
+    else:
+        arch = "_64"
 
     if path.isdir(gcc):
         y = listdir(gcc)
         for x in y:
-            if "x86_64" in x:
+            if arch in x:
                 gccm = x
                 z = listdir(gcc + "/" + x)
+                if len(z) == 1:
+                    gccv = z[1]
+                    break
                 for w in z:
                     if w > test:
                         gccv = "%s"%w

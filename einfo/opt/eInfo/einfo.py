@@ -2,38 +2,6 @@
 # encoding: utf-8
 import os
 import elementary as elm
-#~ import subprocess
-#~ import os
-#~ import time
-#~
-#~ commands    = [
-    #~ "dmidecode",
-    #~ "ifconfig",
-    #~ "lshw",
-    #~ "iwconfig"]
-#~ files       = [
-    #~ "/opt/eInfo/info/dmiinfo",
-    #~ "/opt/eInfo/info/netintlocinfo",
-    #~ "/opt/eInfo/info/netintreminfo",
-    #~ "/opt/eInfo/info/viddevinfo",
-    #~ "/opt/eInfo/info/netdevinfo",
-    #~ "/opt/eInfo/info/auddevinfo"]
-#~
-#~
-#~ processes = set()
-#~
-#~ for i in range(len(commands)):
-    #~ if i == 2:
-        #~ processes.add(subprocess.Popen([commands[i], "-C", "display", "-quiet", ">", files[3]]))
-        #~ processes.add(subprocess.Popen([commands[i], "-C", "network", "-quiet", ">", files[4]]))
-        #~ processes.add(subprocess.Popen([commands[i], "-C", "multimedia", "-quiet", ">", files[5]]))
-    #~ else:
-        #~ processes.add(subprocess.Popen([commands[i], ">", files[i]]))
-#~
-#~ for p in processes:
-    #~ if p.poll() is None:
-        #~ p.wait()
-
 
 """eInfo
 
@@ -90,10 +58,19 @@ class eInfo(object):
             from ecore import Timer
             Timer(0.6, vipbox)
 
+        def exporting(mn, mnitm):
+            import general
+            general.export_as("plain", "%s/system.info"%os.getenv("HOME"))
+
         win = self.win = elm.StandardWindow("einfo", "eInfo")
         win.callback_delete_request_add(lambda o: elm.exit())
         win.resize(440, 285)
         win.show()
+
+        #~ menu = elm.Menu(win)
+        #~ menu.parent = win
+        #~ menu.item_add(label="Export", callback=exporting)
+        #~ menu.show()
 
         n = elm.Notify(self.win)
         lb = elm.Label(self.win)

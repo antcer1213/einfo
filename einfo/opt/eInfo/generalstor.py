@@ -160,20 +160,29 @@ class Storage_info():
     def number(self):
         return self.num
 
-    def vendor(self, entry, i):
+    def vendor(self, entry=False, i=False):
         data = self.data[i]
 
-        entry.entry_set(data[0])
+        if entry:
+            entry.entry_set(data[0])
+        else:
+            return data[0]
 
-    def model(self, entry, i):
+    def model(self, entry=False, i=False):
         data = self.data[i]
 
-        entry.entry_set(data[1])
+        if entry:
+            entry.entry_set(data[1])
+        else:
+            return data[1]
 
 
-    def revision(self, entry, i):
+    def revision(self, entry=False, i=False):
         data = self.data[i]
 
-        entry.entry_set(data[2])
+        if entry:
+            entry.entry_set(data[2])
+        else:
+            return data[2]
 
 

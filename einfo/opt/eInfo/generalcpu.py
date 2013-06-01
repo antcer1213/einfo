@@ -51,71 +51,107 @@ class CPU_info():
         else:
             return self.num
 
-    def vendor_id(self, entry, i):
+    def vendor_id(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("vendor_id"):
                 vendor = x.split(":")[1].lstrip(" ")
                 break
-        entry.entry_set(vendor)
+        if entry:
+            entry.entry_set(vendor)
+        else:
+            return vendor
 
-    def cpu_arch(self, entry, i):
+    def cpu_arch(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("flags"):
-                if " lm " in x:
-                    entry.entry_set("64bit")
-                elif " rm " in x:
-                    entry.entry_set("16bit")
+                if entry:
+                    if " lm " in x:
+                        entry.entry_set("64bit")
+                    elif " rm " in x:
+                        entry.entry_set("16bit")
+                    else:
+                        entry.entry_set("32bit")
+                    break
                 else:
-                    entry.entry_set("32bit")
-                break
+                    if " lm " in x:
+                        return "64bit"
+                    elif " rm " in x:
+                        return "16bit"
+                    else:
+                        return "32bit"
+                    break
 
-    def cpu_hvm(self, entry, i):
+    def cpu_hvm(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("flags"):
-                if " svm " in x:
-                    entry.entry_set("True")
-                elif " vmx " in x:
-                    entry.entry_set("True")
+                if entry:
+                    if " svm " in x:
+                        entry.entry_set("True")
+                    elif " vmx " in x:
+                        entry.entry_set("True")
+                    else:
+                        entry.entry_set("False")
+                    break
                 else:
-                    entry.entry_set("False")
-                break
+                    if " svm " in x:
+                        return "True"
+                    elif " vmx " in x:
+                        return "True"
+                    else:
+                        return "False"
+                    break
 
-    def model_name(self, entry, i):
+    def model_name(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("model name"):
                 name = x.split(":")[1].lstrip(" ")
                 break
-        entry.entry_set(name)
+        if entry:
+            entry.entry_set(name)
+        else:
+            return name
 
-    def cpu_freq(self, entry, i):
+    def cpu_freq(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("cpu MHz"):
                 freq = "%s MHz" %x.split(":")[1].lstrip(" ")
                 break
-        entry.entry_set(freq)
+        if entry:
+            entry.entry_set(freq)
+        else:
+            return freq
 
-    def cache_size(self, entry, i):
+    def cache_size(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("cache size"):
                 cache = x.split(":")[1].lstrip(" ")
                 break
-        entry.entry_set(cache)
+        if entry:
+            entry.entry_set(cache)
+        else:
+            return cache
 
-    def addr_sizes(self, entry, i):
+    def addr_sizes(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("address sizes"):
                 sizes = x.split(":")[1].lstrip(" ")
                 break
-        entry.entry_set(sizes)
+        if entry:
+            entry.entry_set(sizes)
+        else:
+            return sizes
 
-    def bogomips(self, entry, i):
+    def bogomips(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("bogomips"):
                 bogo = x.split(":")[1].lstrip(" ")
                 break
-        entry.entry_set(bogo)
+        if entry:
+            entry.entry_set(bogo)
+        else:
+            return bogo
 
-    def numbering(self, entry, i):
+    def numbering(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("cpu family"):
                 fam = x.split(":")[1].lstrip(" ")
@@ -137,14 +173,20 @@ class CPU_info():
             if x.startswith("physical id"):
                 pid = x.split(":")[1].lstrip(" ")
                 break
-        entry.entry_set("Family(%s), Model(%s), Stepping(%s) | Cores=%s | Phys ID=%s" %(fam, mod, step, cor, pid))
+        if entry:
+            entry.entry_set("Family(%s), Model(%s), Stepping(%s) | Cores=%s | Phys ID=%s" %(fam, mod, step, cor, pid))
+        else:
+            return "Family(%s), Model(%s), Stepping(%s) | Cores=%s | Phys ID=%s" %(fam, mod, step, cor, pid)
 
-    def flags(self, entry, i):
+    def flags(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("flags"):
                 flags = x.split(":")[1].lstrip(" ")
                 break
-        entry.entry_set(flags)
+        if entry:
+            entry.entry_set(flags)
+        else:
+            return flags
 
     def icon(self, i):
         data = self.data[i]

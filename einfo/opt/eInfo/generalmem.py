@@ -56,7 +56,7 @@ class Memory_Info():
 
         return used/total
 
-    def memtotal(self, entry):
+    def memtotal(self, entry=False):
         scale = self.scale
         data = self.data
 
@@ -67,7 +67,10 @@ class Memory_Info():
             entry.entry_set("%s GB" % total)
         elif scale == "MB":
             total = '{:,}'.format(total/1024)
-            entry.entry_set("%s MB" % total)
+            if entry:
+                entry.entry_set("%s MB" % total)
+            else:
+                return "%s MB" %total
         else:
             total = '{:,}'.format(total)
             entry.entry_set("%s KB" % total)
