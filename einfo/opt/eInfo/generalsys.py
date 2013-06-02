@@ -37,7 +37,7 @@ def e_ver(entry=False):
 
 def os_type(entry=False):
     with open("/proc/sys/kernel/ostype") as file:
-        ostype = file.readline()
+        ostype = file.readline()[:-1]
     if entry:
         entry.entry_set(ostype)
     else:
@@ -120,7 +120,7 @@ def installed_pkgs(entry=False):
     if entry:
         entry.entry_set("%s"%num)
     else:
-        return num
+        return str(num)
 
 def gcc_info(entry=False):
     gcc = "/usr/lib/gcc"

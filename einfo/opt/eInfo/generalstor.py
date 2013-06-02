@@ -45,17 +45,10 @@ class Partition_info():
 
     def partition_name(self):
         partname = []
-        partname.append('Name'.ljust(9))
+        partname.append('Name'.ljust(8))
         for i in range(self.num):
             name = self.data[i][3]
-            if name.isalpha():
-                partname.append(name.ljust(13))
-            elif len(name) == 5:
-                partname.append(name.ljust(10))
-            elif len(name) < 12:
-                partname.append(name.ljust(12))
-            else:
-                partname.append(name)
+            partname.append(name.ljust(8))
         return partname
 
     def partition_size(self):
@@ -65,47 +58,38 @@ class Partition_info():
             size = int(self.data[i][2])/1024
             size = '{:,}'.format(size)
             size = size + " MB"
-            if len(size) < 12:
-                partsize.append(size.ljust(12))
-            else:
-                partsize.append(size)
+            partsize.append(size.ljust(12))
         return partsize
 
     def partition_type(self):
         parttype = []
-        parttype.append('Type'.ljust(12))
+        parttype.append('Type'.ljust(10))
         for x in self.data:
             if x[3].isalpha():
-                parttype.append(blank.ljust(15))
+                parttype.append(blank.ljust(10))
             elif x[3] in "".join(self.test):
                 for i in range(self.tmpnum):
                     if x[3] in self.tmpdata[i][0]:
-                        if len(self.tmpdata[i][1]) < 8:
-                            parttype.append(self.tmpdata[i][1].ljust(8))
-                        else:
-                            parttype.append(self.tmpdata[i][1])
+                        parttype.append(self.tmpdata[i][1].ljust(10))
             else:
-                parttype.append(blank.ljust(15))
+                parttype.append(blank.ljust(10))
         return parttype
 
     def partition_used(self):
         partused = []
-        partused.append('Used'.ljust(10))
+        partused.append('Used'.ljust(12))
         for x in self.data:
             if x[3].isalpha():
-                partused.append(blank.ljust(15))
+                partused.append(blank.ljust(12))
             elif x[3] in "".join(self.test):
                 for i in range(self.tmpnum):
                     if x[3] in self.tmpdata[i][0]:
                         used = int(self.tmpdata[i][3])/1024
                         used = '{:,}'.format(used)
                         used = used + " MB"
-                        if len(used) < 8:
-                            partused.append(used.ljust(8))
-                        else:
-                            partused.append(used)
+                        partused.append(used.ljust(12))
             else:
-                partused.append(blank.ljust(15))
+                partused.append(blank.ljust(12))
         return partused
 
     def partition_free(self):
@@ -113,19 +97,16 @@ class Partition_info():
         partfree.append('Free'.ljust(12))
         for x in self.data:
             if x[3].isalpha():
-                partfree.append(blank.ljust(15))
+                partfree.append(blank.ljust(12))
             elif x[3] in "".join(self.test):
                 for i in range(self.tmpnum):
                     if x[3] in self.tmpdata[i][0]:
                         free = int(self.tmpdata[i][4])/1024
                         free = '{:,}'.format(free)
                         free = free + " MB"
-                        if len(free) < 8:
-                            partfree.append(free.ljust(8))
-                        else:
-                            partfree.append(free)
+                        partfree.append(free.ljust(12))
             else:
-                partfree.append(blank.ljust(15))
+                partfree.append(blank.ljust(12))
         return partfree
 
     def partition_combined(self):
@@ -181,8 +162,8 @@ class Storage_info():
         data = self.data[i]
 
         if entry:
-            entry.entry_set(data[2])
+            entry.entry_set(data[2][:-1])
         else:
-            return data[2]
+            return data[2][:-1]
 
 

@@ -37,6 +37,12 @@ class eInfo(object):
 
             self.win.resize_object_add(vbox)
 
+            tbox = elm.Box(self.win)
+            tbox.size_hint_weight_set(1.0, 0.0)
+            tbox.horizontal_set(True)
+            vbox.pack_end(tbox)
+            tbox.show()
+
             tb = elm.Toolbar(self.win)
             tb.item_append("", "OS", system)
             tb.item_append("", "CPU", cpu)
@@ -45,8 +51,18 @@ class eInfo(object):
             tb.item_append("", "Hardware", hardware)
             tb.homogeneous_set(True)
             tb.select_mode_set(3)
-            vbox.pack_end(tb)
+            tbox.pack_end(tb)
             tb.show()
+
+            tbr = elm.Toolbar(self.win)
+            opts = tbr.item_append("", "Options")
+            opts.menu_set(True)
+            tb.menu_parent_set(self.win)
+            menu = opts.menu_get()
+            menu.item_add(label="Export as Plain Text", callback=lambda a,b: exporting())
+            tbr.homogeneous_set(True)
+            tbox.pack_end(tbr)
+            tbr.show()
 
             self.separator(vbox)
 
@@ -58,25 +74,25 @@ class eInfo(object):
             from ecore import Timer
             Timer(0.6, vipbox)
 
-        def exporting(mn, mnitm):
+        def exporting():
             import general
+            lb = elm.Label(self.win)
+            lb.text = "<b>...exported : %s/system.info</b>"%os.getenv("HOME")
             general.export_as("plain", "%s/system.info"%os.getenv("HOME"))
+            n = elm.Notify(self.win)
+            n.orient = 2
+            n.content = lb
+            n.timeout_set(3.0)
+            n.show()
 
         win = self.win = elm.StandardWindow("einfo", "eInfo")
         win.callback_delete_request_add(lambda o: elm.exit())
         win.resize(440, 285)
         win.show()
 
-        #~ menu = elm.Menu(win)
-        #~ menu.parent = win
-        #~ menu.item_add(label="Export", callback=exporting)
-        #~ menu.show()
-
         n = elm.Notify(self.win)
         lb = elm.Label(self.win)
         lb.text = "<b>Loading System Information...</b>"
-        lb.size_hint_align = 0.0, 0.5
-        lb.show()
         n.orient = 1
         n.allow_events_set(False)
         n.content = lb
@@ -92,7 +108,7 @@ class eInfo(object):
         infobox = self.infobox
         infobox.clear()
 
-        hor = self.box(infobox, [1.0, 1.0])
+        hor = self.box(infobox, [1.0, 0.0])
 
         inhor = self.box(hor, [1.0, 1.0], True)
 
@@ -220,7 +236,7 @@ class eInfo(object):
 
             ic.standard_set(gencpu.icon(i))
             gencpu.vendor_id(info0, i)
-            gencpu.number(info1)
+            #~ gencpu.number(info1)
             gencpu.cpu_arch(info2, i)
             gencpu.cpu_hvm(info3, i)
             gencpu.model_name(info4, i)
@@ -284,8 +300,8 @@ class eInfo(object):
         info0 = self.info(top, [False, True, False])
 
         bot = self.box(left)
-        self.label(bot, "CPUs:")
-        info1 = self.info(bot, [False, True, False])
+        #~ self.label(bot, "CPUs:")
+        #~ info1 = self.info(bot, [False, True, False])
 
         self.label(bot, "CPU Arch:")
         info2 = self.info(bot, [False, True, False])
@@ -448,7 +464,7 @@ class eInfo(object):
         self.separator(infobox)
 
         meminfo = elm.Box(self.win)
-        self.size_hints(meminfo)
+        self.size_hints(meminfo, [1.0, 0.0])
         infobox.pack_end(meminfo)
         meminfo.show()
 
@@ -558,6 +574,11 @@ class eInfo(object):
         inhor.size_hint_align_set(0.5, -1.0)
         self.label(inhor, "Cached:", [0.0, 1.0])
         info8 = self.info(inhor, [False, True, False])
+
+        fill = elm.Box(self.win)
+        self.size_hints(fill)
+        infobox.pack_end(fill)
+        fill.show()
 
         genmeminfo(None)
 

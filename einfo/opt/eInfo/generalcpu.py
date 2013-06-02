@@ -54,7 +54,7 @@ class CPU_info():
     def vendor_id(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("vendor_id"):
-                vendor = x.split(":")[1].lstrip(" ")
+                vendor = x.split(":")[1].lstrip(" ")[:-1]
                 break
         if entry:
             entry.entry_set(vendor)
@@ -104,7 +104,7 @@ class CPU_info():
     def model_name(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("model name"):
-                name = x.split(":")[1].lstrip(" ")
+                name = x.split(":")[1].lstrip(" ")[:-1]
                 break
         if entry:
             entry.entry_set(name)
@@ -114,7 +114,7 @@ class CPU_info():
     def cpu_freq(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("cpu MHz"):
-                freq = "%s MHz" %x.split(":")[1].lstrip(" ")
+                freq = "%s MHz" %x.split(":")[1].lstrip(" ")[:-1]
                 break
         if entry:
             entry.entry_set(freq)
@@ -124,7 +124,7 @@ class CPU_info():
     def cache_size(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("cache size"):
-                cache = x.split(":")[1].lstrip(" ")
+                cache = x.split(":")[1].lstrip(" ")[:-1]
                 break
         if entry:
             entry.entry_set(cache)
@@ -134,7 +134,7 @@ class CPU_info():
     def addr_sizes(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("address sizes"):
-                sizes = x.split(":")[1].lstrip(" ")
+                sizes = x.split(":")[1].lstrip(" ")[:-1]
                 break
         if entry:
             entry.entry_set(sizes)
@@ -144,7 +144,7 @@ class CPU_info():
     def bogomips(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("bogomips"):
-                bogo = x.split(":")[1].lstrip(" ")
+                bogo = x.split(":")[1].lstrip(" ")[:-1]
                 break
         if entry:
             entry.entry_set(bogo)
@@ -154,7 +154,7 @@ class CPU_info():
     def numbering(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("cpu family"):
-                fam = x.split(":")[1].lstrip(" ")
+                fam = x.split(":")[1].lstrip(" ")[:-1]
                 break
         for x in self.data[i]:
             y = x.split()
@@ -163,15 +163,15 @@ class CPU_info():
                 break
         for x in self.data[i]:
             if x.startswith("stepping"):
-                step = x.split(":")[1].lstrip(" ")
+                step = x.split(":")[1].lstrip(" ")[:-1]
                 break
         for x in self.data[i]:
             if x.startswith("cpu cores"):
-                cor = x.split(":")[1].lstrip(" ")
+                cor = x.split(":")[1].lstrip(" ")[:-1]
                 break
         for x in self.data[i]:
             if x.startswith("physical id"):
-                pid = x.split(":")[1].lstrip(" ")
+                pid = x.split(":")[1].lstrip(" ")[:-1]
                 break
         if entry:
             entry.entry_set("Family(%s), Model(%s), Stepping(%s) | Cores=%s | Phys ID=%s" %(fam, mod, step, cor, pid))
@@ -181,7 +181,7 @@ class CPU_info():
     def flags(self, entry=False, i=False):
         for x in self.data[i]:
             if x.startswith("flags"):
-                flags = x.split(":")[1].lstrip(" ")
+                flags = x.split(":")[1].lstrip(" ")[:-1]
                 break
         if entry:
             entry.entry_set(flags)

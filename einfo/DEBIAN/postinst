@@ -12,10 +12,3 @@ chmod 0440 /etc/sudoers.d/einfo
 if [ "`ping -c 1 google.com`" ]; then
     update-pciids
 fi
-
-#~ dmidecode                 > /opt/eInfo/info/dmiinfo
-#~ ifconfig                  > /opt/eInfo/info/netintlocinfo
-#~ lshw -C display -quiet    > /opt/eInfo/info/viddevinfo
-#~ lshw -C network -quiet    > /opt/eInfo/info/netdevinfo
-#~ lshw -C multimedia -quiet > /opt/eInfo/info/auddevinfo
-#~ iwconfig                  > /opt/eInfo/info/netintreminfo

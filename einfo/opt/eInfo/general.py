@@ -45,72 +45,130 @@ def export_as(typ, loc):
     if typ == "html":
         pass
     else:
-        plain = ["eInfo - Information Sheet (Plain Text)", "\n\n", "OS\n"]
-        plain.append(generalsys.os_release())
-        plain.append(generalsys.e_ver())
-        plain.append(generalsys.os_type())
-        plain.append(generalsys.kernel_info())
-        plain.append(generalsys.kernel_arch())
-        plain.append(generalsys.boot_cmd())
-        plain.append(generalsys.display_man())
-        plain.append(generalsys.installed_pkgs())
-        plain.append(generalsys.gcc_info())
-        plain.append(generalsys.xorg_info())
-        plain.append(generalsys.hostname())
-        plain.append(generalsys.domainname())
-        plain.append(generalsys.uptime())
-        plain.append(generalsys.timezone())
-        plain.append(generalsys.language())
-        plain.append("\n\n")
-        plain.append("CPU\n")
+        plain = ["eInfo - Information Sheet (Plain Text)", "\n\n\nOS\n\n"]
+        plain.append("Release: %s\n"%generalsys.os_release())
+        plain.append("Enlightenment: %s\n"%generalsys.e_ver())
+        plain.append("OS Type: %s\n"%generalsys.os_type())
+        plain.append("Kernel Info: %s\n"%generalsys.kernel_info())
+        plain.append("Kernel Arch: %s\n"%generalsys.kernel_arch())
+        plain.append("Boot CMD: %s\n"%generalsys.boot_cmd())
+        plain.append("Display Manager: %s\n"%generalsys.display_man())
+        plain.append("Installed Packages: %s\n"%generalsys.installed_pkgs())
+        plain.append("GCC Version: %s\n"%generalsys.gcc_info())
+        plain.append("X.Org Version: %s\n"%generalsys.xorg_info())
+        plain.append("Host name: %s\n"%generalsys.hostname())
+        plain.append("Domain Name: %s\n"%generalsys.domainname())
+        plain.append("Uptime: %s\n"%generalsys.uptime())
+        plain.append("Time Zone: %s\n"%generalsys.timezone())
+        plain.append("Language: %s\n"%generalsys.language())
+        plain.append("\n\n\nCPU\n")
         for i in range(gencpu.number()):
-            plain.append("cpu%s"%i)
-            plain.append(gencpu.vendor_id(i=i))
-            plain.append(gencpu.model_name(i=i))
-            plain.append(gencpu.cpu_arch(i=i))
-            plain.append(gencpu.cpu_hvm(i=i))
-            plain.append(gencpu.cpu_freq(i=i))
-            plain.append(gencpu.cache_size(i=i))
-            plain.append(gencpu.addr_sizes(i=i))
-            plain.append(gencpu.bogomips(i=i))
-            plain.append(gencpu.numbering(i=i))
-            plain.append(gencpu.flags(i=i))
-        plain.append("\n\n")
-        plain.append("Memory\n")
-        plain.append(genmem.memtotal())
+            plain.append("\ncpu%s\n"%i)
+            plain.append("Vendor: %s\n"%gencpu.vendor_id(i=i))
+            plain.append("Model Name: %s\n"%gencpu.model_name(i=i))
+            plain.append("CPU Arch: %s\n"%gencpu.cpu_arch(i=i))
+            plain.append("HVM Support: %s\n"%gencpu.cpu_hvm(i=i))
+            plain.append("Current Frequency: %s\n"%gencpu.cpu_freq(i=i))
+            plain.append("L2 Cache: %s\n"%gencpu.cache_size(i=i))
+            plain.append("Address Sizes: %s\n"%gencpu.addr_sizes(i=i))
+            plain.append("Bogomips: %s\n"%gencpu.bogomips(i=i))
+            plain.append("Signature: %s\n"%gencpu.numbering(i=i))
+            plain.append("Flags: %s\n"%gencpu.flags(i=i))
+        plain.append("\n\n\nMemory\n\n")
+        plain.append("Total Usable Memory: %s\n\n"%genmem.memtotal())
         for x in genhw.mem_info():
-            plain.append(x)
-        plain.append("\n\n")
-        plain.append("Storage\n")
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\n\nStorage\n\n")
         for i in range(genstr1.number()):
             plain.append(genstr1.vendor(i=i))
             plain.append(genstr1.model(i=i))
             plain.append(genstr1.revision(i=i))
-        plain.append("\n")
+            plain.append("\n")
         for x in genstr2.partition_combined():
-            plain.append(x)
-        plain.append("\n\n")
-        plain.append("Hardware\n")
+            plain.append("%s\n"%x)
+        plain.append("\n\n\n\nHardware\n\n\n")
+        plain.append("System Unit Information\n\n")
         for x in genhw.sys_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nMotherboard Information\n\n")
         for x in genhw.mobo_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nBIOS Information\n\n")
         for x in genhw.bios_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nDevice Information\n\n")
         for x in genhw.pci_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nBattery Information\n\n")
         for x in genhw.bat_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nVideo Port Information\n\n")
         for x in genhw.vid_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nAudio Port Information\n\n")
         for x in genhw.aud_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nNetwork Port Information\n\n")
         for x in genhw.net_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nLocal Network Information\n\n")
         for x in genhw.net_int_loc_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            elif "<SEP>" in x:
+                plain.append("\n")
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nRemote Network Information\n\n")
         for x in genhw.net_int_rem_info():
-            plain.append(x)
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            elif "<SEP>" in x:
+                plain.append("\n")
+            else:
+                plain.append("%s\n"%x)
+
+        #~ for x in plain:
+            #~ if type(x) is not str:
+                #~ print x
 
         with open(loc, "w") as file:
             file.writelines(plain)
