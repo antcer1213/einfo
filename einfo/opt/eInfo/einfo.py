@@ -88,7 +88,7 @@ class eInfo(object):
 
         win = self.win = elm.StandardWindow("einfo", "eInfo")
         win.callback_delete_request_add(lambda o: elm.exit())
-        win.resize(400, 295)
+        win.resize(410, 295)
         win.show()
 
         n = elm.Notify(self.win)
