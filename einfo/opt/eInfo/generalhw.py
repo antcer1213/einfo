@@ -2,7 +2,7 @@
 # encoding: utf-8
 import general
 import dmidecode
-from os import system, listdir
+from os import listdir, path
 import socket, struct, fcntl
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sockfd = sock.fileno()
@@ -22,10 +22,10 @@ class Hardware_Info():
         pass
 
     def mobo_info(self):
-        data = dmidecode.baseboard().values()
+        #~ data = dmidecode.baseboard().values()
         mobo = []
 
-        for v in data:
+        for v in dmidecode.baseboard().values():
             if v['dmi_type'] == 2: #Motherboard
                 mobo.append("Manufacturer: %s" %(v['data']['Manufacturer']))
                 mobo.append("Product Name: %s" %(v['data']['Product Name']))
@@ -36,10 +36,10 @@ class Hardware_Info():
         return mobo
 
     def bios_info(self):
-        data = dmidecode.bios().values()
+        #~ data = dmidecode.bios().values()
         char = []
 
-        for v in data:
+        for v in dmidecode.bios().values():
             if v['dmi_type'] == 0: #BIOS
                 ven    = "Vendor: %s" %(v['data']['Vendor'])
                 ver    = "Version: %s" %(v['data']['Version'])
@@ -69,10 +69,10 @@ class Hardware_Info():
 
 
     def sys_info(self):
-        data = dmidecode.system().values()
+        #~ data = dmidecode.system().values()
         sys = []
 
-        for v in data:
+        for v in dmidecode.system().values():
             if v['dmi_type'] == 1: #System
                 sys.append("Manufacturer: %s" %(v['data']['Manufacturer']))
                 sys.append("Product Name: %s" %(v['data']['Product Name']))
@@ -87,9 +87,131 @@ class Hardware_Info():
         return sys
 
 
+    def usb_info(self):
+        with open("/usr/share/misc/usb.ids") as file:
+            data = file.readlines()
+
+        data2 = []
+        for cntrlr in listdir("/sys/bus/usb/devices"):
+            if cntrlr.startswith("usb"):
+                data2.append("/sys/bus/usb/devices/%s"%cntrlr)
+
+        #~ sysp  = []
+        busid = []
+        devid = []
+        vdid  = []
+        pdid  = []
+        prod  = []
+        #~ root  = []
+        speed = []
+
+        usb   = []
+        usbnum = 0
+
+        for v in data2:
+            #~ sysp.append(v)
+            #~ root.append(True)
+            with open("%s/idVendor"%v) as file:
+                vdid.append(file.readline()[:-1])
+            with open("%s/idProduct"%v) as file:
+                pdid.append(file.readline()[:-1])
+            with open("%s/product"%v) as file:
+                prod.append(file.readline()[:-1])
+            with open("%s/speed"%v) as file:
+                speed.append(file.readline()[:-1])
+            with open("%s/busnum"%v) as file:
+                busid.append(file.readline()[:-1].rjust(3, "0"))
+            with open("%s/devnum"%v) as file:
+                devid.append(file.readline()[:-1].rjust(3, "0"))
+            for x in listdir(v):
+                if x[0].isdigit() and not ":1.0" in x and path.exists("%s/%s/product"%(v, x)):
+                    #~ sysp.append("%s/%s"%(v, x))
+                    #~ root.append(False)
+                    with open("%s/%s/idVendor"%(v, x)) as file:
+                        vdid.append(file.readline()[:-1])
+                    with open("%s/%s/idProduct"%(v, x)) as file:
+                        pdid.append(file.readline()[:-1])
+                    with open("%s/%s/product"%(v, x)) as file:
+                        prod.append(file.readline()[:-1])
+                    with open("%s/%s/speed"%(v, x)) as file:
+                        speed.append(file.readline()[:-1])
+                    with open("%s/%s/busnum"%(v, x)) as file:
+                        busid.append(file.readline()[:-1].rjust(3, "0"))
+                    with open("%s/%s/devnum"%(v, x)) as file:
+                        devid.append(file.readline()[:-1].rjust(3, "0"))
+
+        del data2
+
+        for index, x in enumerate(vdid):
+            if usbnum > 0:
+                usb.append(" ")
+            #~ if root[index]:
+            usb.append("USB Device %s"%index)
+            usb.append("Bus Number: %s" %busid[index])
+            usb.append("Device Number: %s" %devid[index])
+            usb.append("Vendor ID: %s" %x)
+            usb.append("Product ID: %s" %pdid[index])
+            usb.append("Product Name: %s" %prod[index])
+            #~ else:
+                #~ usb.append("        USB Device %s"%index)
+                #~ usb.append("        Bus Number: %s" %busid[index])
+                #~ usb.append("        Device Number: %s" %devid[index])
+                #~ usb.append("        Vendor ID: %s" %x)
+                #~ usb.append("        Product ID: %s" %pdid[index])
+                #~ usb.append("        Product Name: %s" %prod[index])
+
+            usbnum += 1
+            for i, v in enumerate(data):
+                if v.startswith("#"):
+                    pass
+                elif v.startswith("\t"):
+                    pass
+                elif not v.split() == []:
+                    if v.split()[0] == x:
+                        tmp = v.split()
+                        del tmp[0]
+                        #~ if root[index]:
+                        usb.append("Vendor Name: %s" %" ".join(tmp))
+                        #~ else:
+                            #~ usb.append("        Vendor Name: %s" %" ".join(tmp))
+                        try:
+                            num = i + 1
+                            while not pdid[index] == data[num][1:].split()[0]:
+                                num += 1
+                            tmp = data[num][1:].split()
+                            del tmp[0]
+                            #~ if root[index]:
+                            usb.append("Device Name: %s" %" ".join(tmp))
+                            usb.append("Speed: %s MB/s" %speed[index])
+                            #~ else:
+                                #~ usb.append("        Device Name: %s" %" ".join(tmp))
+                                #~ usb.append("        Speed: %s MB/s" %speed[index])
+                        except:
+                            #~ if root[index]:
+                            usb.append("Device Name: N/A")
+                            usb.append("Speed: %s MB/s" %speed[index])
+                            #~ else:
+                                #~ usb.append("        Device Name: N/A")
+                                #~ usb.append("        Speed: %s MB/s" %speed[index])
+                    else:
+                        pass
+        #~ del data
+        #~ del busid
+        #~ del devid
+        #~ del vdid
+        #~ del pdid
+        #~ del prod
+        #~ del root
+        #~ del speed
+
+        return usb
+
+
     def pci_info(self):
-        data = open("/usr/share/misc/pci.ids").readlines()
-        data1 = open("/proc/bus/pci/devices").readlines()
+        with open("/usr/share/misc/pci.ids") as file:
+            data = file.readlines()
+        with open("/proc/bus/pci/devices") as file:
+            data1 = file.readlines()
         data2 = listdir("/sys/bus/pci/devices")
         vdid = []
         pci = []
@@ -98,9 +220,10 @@ class Hardware_Info():
         for v in data1:
             vdid.append(v.split()[1])
 
-        for v in vdid:
+        for index, v in enumerate(vdid):
             if pcinum > 0:
                 pci.append(" ")
+            pci.append("PCI Device %s"%index)
             VID = v[0:4]
             pci.append("Vendor ID: %s" %VID)
             DID = v[4:]
@@ -128,25 +251,32 @@ class Hardware_Info():
                             #~ print data2[pcinum-1]
                             #~ print open("/sys/bus/pci/devices/%s/subsystem_vendor"%data2[pcinum-1]).readline()[2:-1]
                             #~ print tmp[0]
-                            if open("/sys/bus/pci/devices/%s/subsystem_vendor"%data2[pcinum-1]).readline()[2:-1] == tmp[0] and open("/sys/bus/pci/devices/%s/subsystem_device"%data2[pcinum-1]).readline()[2:-1] == tmp[1]:
+                            with open("/sys/bus/pci/devices/%s/subsystem_vendor"%data2[pcinum-1]) as file:
+                                sysvend = file.readline()[2:-1]
+                            with open("/sys/bus/pci/devices/%s/subsystem_device"%data2[pcinum-1]) as file:
+                                sysdev = file.readline()[2:-1]
+                            if sysvend == tmp[0] and sysdev == tmp[1]:
                                 del tmp[0] ; del tmp[0]
                                 pci.append("Subsystem: %s" %" ".join(tmp))
                             num += 1
                     else:
                         pass
 
-
+        #~ del data
+        #~ del data1
+        #~ del data2
+        #~ del vdid
 
         return pci
 
 
     def mem_info(self):
-        data = dmidecode.memory().values()
+        #~ data = dmidecode.memory().values()
         mem = []
         arraynum = 0
         memnum = 0
 
-        for v in data:
+        for v in dmidecode.memory().values():
             if v['dmi_type'] == 16: #Physical Memory Array
                 if arraynum > 0:
                     mem.append(" ")
@@ -189,9 +319,9 @@ class Hardware_Info():
         data = dmidecode.type(22)
         bat = []
 
-        for v in data.keys():
-            if type(data[v]) == dict: #Portable Battery
-                v = data[v]
+        for x in data.keys():
+            if type(data[x]) == dict: #Portable Battery
+                v = data[x]
                 bat.append("Name: %s" %(v['data']['Name']))
                 bat.append("Manufacturer: %s" %(v['data']['Manufacturer']))
                 bat.append("Location: %s" %(v['data']['Location']))
@@ -207,11 +337,11 @@ class Hardware_Info():
 
 
     def vid_info(self):
-        data = dmidecode.connector().values()
+        #~ data = dmidecode.connector().values()
         vid = []
         vidport = 0
 
-        for v in data:
+        for v in dmidecode.connector().values():
             if v['dmi_type'] == 8 and v['data']['Port Type'] == "Video Port": #Video Port
                 if vidport > 0:
                     vid.append(" ")
@@ -290,11 +420,11 @@ class Hardware_Info():
 
 
     def aud_info(self):
-        data = dmidecode.connector().values()
+        #~ data = dmidecode.connector().values()
         aud = []
         audport = 0
 
-        for v in data:
+        for v in dmidecode.connector().values():
             if v['dmi_type'] == 8 and v['data']['Port Type'] == "Audio Port": #Audio Port
                 if audport > 0:
                     aud.append(" ")
@@ -373,15 +503,15 @@ class Hardware_Info():
         return aud
 
     def net_info(self):
-        data1 = dmidecode.connector().values()
-        data2 = dmidecode.baseboard().values()
+        #~ data1 = dmidecode.connector().values()
+        #~ data2 = dmidecode.baseboard().values()
         #~ data2 = dmidecode.QueryTypeId(41) ; print data2
 
         net = []
         netport = 0
         netdev  = 0
 
-        for v in data1:
+        for v in dmidecode.connector().values():
             if v['dmi_type'] == 8 and v['data']['Port Type'] == "Network Port": #Network Port
                 if netport > 0:
                     net.append(" ")
@@ -393,7 +523,7 @@ class Hardware_Info():
 
                 netport += 1
 
-        for v in data2:
+        for v in dmidecode.baseboard().values():
             if v['dmi_type'] == 41:
                 chk = v['data']['Reference Designation']
                 if "802.11" in chk or "WiFi" in chk or "Ethernet" in chk:
@@ -493,10 +623,11 @@ class Hardware_Info():
 
         for i, x in enumerate(data):
             if i > 0:
-                net.append("<SEP> ")
+                net.append(" ")
             net.append("Interface %s" %i)
             net.append("Name: %s" %x)
-            net.append("HW Address: %s" %(open("/sys/class/net/%s/address" %x).readline()[:-1]))
+            with open("/sys/class/net/%s/address" %x) as file:
+                net.append("HW Address: %s" %(file.readline()[:-1]))
             if self.get_ip(x):
                 net.append("IPv4 Address: %s" %(self.get_ip(x)))
             if self.get_ip6(x):
@@ -505,11 +636,15 @@ class Hardware_Info():
                 net.append("Broadcast: %s" %(self.get_brdcst(x)))
             if self.get_netmsk(x):
                 net.append("Netmask: %s" %(self.get_netmsk(x)))
-            net.append("TX Queue Len: %s" %(open("/sys/class/net/%s/tx_queue_len" %x).readline()[:-1]))
-            net.append("MTU: %s" %(open("/sys/class/net/%s/mtu" %x).readline()[:-1]))
-            net.append("Collisions: %s" %(open("/sys/class/net/%s/statistics/collisions" %x).readline()[:-1]))
+            with open("/sys/class/net/%s/tx_queue_len" %x) as file:
+                net.append("TX Queue Len: %s" %(file.readline()[:-1]))
+            with open("/sys/class/net/%s/mtu" %x) as file:
+                net.append("MTU: %s" %(file.readline()[:-1]))
+            with open("/sys/class/net/%s/statistics/collisions" %x) as file:
+                net.append("Collisions: %s" %(file.readline()[:-1]))
             net.append("RX:")
-            B = Decimal(int(open("/sys/class/net/%s/statistics/rx_bytes" %x).readline()[:-1]))
+            with open("/sys/class/net/%s/statistics/rx_bytes" %x) as file:
+                B = Decimal(int(file.readline()[:-1]))
             if B >= 1000 and B < 1000000:
                 B = str(B) + " (%s KB)"%(B/1000)
             elif B >= 1000000 and B < 1000000000:
@@ -518,9 +653,20 @@ class Hardware_Info():
                 B = str(B) + " (%s GB)"%(B/1000000000)
             else:
                 B = str(B)
-            net.append(["Bytes: %s"%(B), "Packets: %s"%open("/sys/class/net/%s/statistics/rx_packets" %x).readline()[:-1], "Errors: %s"%open("/sys/class/net/%s/statistics/rx_errors" %x).readline()[:-1], "Dropped: %s"%open("/sys/class/net/%s/statistics/rx_dropped" %x).readline()[:-1], "Overruns: %s"%open("/sys/class/net/%s/statistics/rx_over_errors" %x).readline()[:-1], "Frame: %s"%open("/sys/class/net/%s/statistics/rx_frame_errors" %x).readline()[:-1]])
+            with open("/sys/class/net/%s/statistics/rx_packets" %x) as file:
+                packets = file.readline()[:-1]
+            with open("/sys/class/net/%s/statistics/rx_errors" %x) as file:
+                errors  = file.readline()[:-1]
+            with open("/sys/class/net/%s/statistics/rx_dropped" %x) as file:
+                dropped  = file.readline()[:-1]
+            with open("/sys/class/net/%s/statistics/rx_over_errors" %x) as file:
+                overruns  = file.readline()[:-1]
+            with open("/sys/class/net/%s/statistics/rx_frame_errors" %x) as file:
+                frame  = file.readline()[:-1]
+            net.append(["Bytes: %s"%(B), "Packets: %s"%packets, "Errors: %s"%errors, "Dropped: %s"%dropped, "Overruns: %s"%overruns, "Frame: %s"%frame])
             net.append("TX:")
-            B = Decimal(int(open("/sys/class/net/%s/statistics/tx_bytes" %x).readline()[:-1]))
+            with open("/sys/class/net/%s/statistics/tx_bytes" %x) as file:
+                B = Decimal(int(file.readline()[:-1]))
             if B >= 1000 and B < 1000000:
                 B = str(B) + " (%s KB)"%(B/1000)
             elif B >= 1000000 and B < 1000000000:
@@ -529,7 +675,16 @@ class Hardware_Info():
                 B = str(B) + " (%s GB)"%(B/1000000000)
             else:
                 B = str(B)
-            net.append(["Bytes: %s"%(B), "Packets: %s"%open("/sys/class/net/%s/statistics/tx_packets" %x).readline()[:-1], "Errors: %s"%open("/sys/class/net/%s/statistics/tx_errors" %x).readline()[:-1], "Dropped: %s"%open("/sys/class/net/%s/statistics/tx_dropped" %x).readline()[:-1], "Carrier: %s"%open("/sys/class/net/%s/statistics/tx_carrier_errors" %x).readline()[:-1]])
+            with open("/sys/class/net/%s/statistics/tx_packets" %x) as file:
+                packets = file.readline()[:-1]
+            with open("/sys/class/net/%s/statistics/tx_errors" %x) as file:
+                errors  = file.readline()[:-1]
+            with open("/sys/class/net/%s/statistics/tx_dropped" %x) as file:
+                dropped  = file.readline()[:-1]
+            with open("/sys/class/net/%s/statistics/tx_carrier_errors" %x) as file:
+                carrier  = file.readline()[:-1]
+
+            net.append(["Bytes: %s"%(B), "Packets: %s"%packets, "Errors: %s"%errors, "Dropped: %s"%dropped, "Carrier: %s"%carrier])
 
         return net
 
@@ -541,7 +696,7 @@ class Hardware_Info():
 
         for i, x in enumerate(data):
             if i > 0:
-                net.append("<SEP> ")
+                net.append(" ")
             net.append("Interface %s" %i)
             net.append("Name: %s" %x)
             if self.get_gwip(x):
@@ -550,6 +705,7 @@ class Hardware_Info():
                 net.append("Gateway HW Address: %s" %(self.get_gwmac(x)))
 
         return net
+
 
 #~ -----------------------------------------
 #~      Network Info Parsing Functions
@@ -614,7 +770,8 @@ class Hardware_Info():
         return ":".join(['%02X' % i for i in mac])
 
     def get_ip6(self, iface):
-        inet6lst = open("/proc/net/if_inet6").readlines()
+        with open("/proc/net/if_inet6") as file:
+            inet6lst = file.readlines()
         for i, x in enumerate(inet6lst):
             inet6lst[i] = x.split()
 
@@ -629,16 +786,16 @@ class Hardware_Info():
     def get_gwip(self, iface):
         octet_list = []
         gw_from_route = None
-        f = open('/proc/net/route').readlines()
-        for line in f:
-            words = line.split()
-            dest = words[1]
-            try:
-                if words[0] == iface and int(dest) == 0:
-                    gw_from_route = words[2]
-                    break
-            except ValueError:
-                pass
+        with open('/proc/net/route') as file:
+            for line in file:
+                words = line.split()
+                dest = words[1]
+                try:
+                    if words[0] == iface and int(dest) == 0:
+                        gw_from_route = words[2]
+                        break
+                except ValueError:
+                    pass
 
         if not gw_from_route:
             return None
@@ -655,12 +812,12 @@ class Hardware_Info():
     def get_gwmac(self, iface):
         gwmac = None
 
-        f = open('/proc/net/arp').readlines()
-        for line in f:
-            words = line.split()
-            words.reverse()
-            if words[0] == iface:
-                gwmac = words[2]
-                break
+        with open('/proc/net/arp') as file:
+            for line in file:
+                words = line.split()
+                words.reverse()
+                if words[0] == iface:
+                    gwmac = words[2]
+                    break
 
         return gwmac

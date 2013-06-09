@@ -11,4 +11,5 @@ chmod 0440 /etc/sudoers.d/einfo
 
 if [ "`ping -c 1 google.com`" ]; then
     update-pciids
+    update-usbids
 fi

@@ -99,7 +99,10 @@ def boot_cmd(win=False):
         popup.part_content_set("button1", bt)
         popup.show()
     else:
-        return open("/proc/cmdline").readline()[:-1]
+        file = open("/proc/cmdline")
+        cmdline = file.readline()[:-1]
+        file.close()
+        return cmdline
 
 def display_man(entry=False):
     with open("/etc/X11/default-display-manager") as file:
@@ -123,30 +126,32 @@ def installed_pkgs(entry=False):
         return str(num)
 
 def gcc_info(entry=False):
-    gcc = "/usr/lib/gcc"
+    gp = "/usr/lib/gcc"
     test = 0
-    if "i" in kernel_arch():
+    if "32" in kernel_arch():
         arch = "i"
     else:
-        arch = "_64"
+        arch = "x86_64"
 
-    if path.isdir(gcc):
-        y = listdir(gcc)
-        for x in y:
-            if arch in x:
-                gccm = x
-                z = listdir(gcc + "/" + x)
-                if len(z) == 1:
-                    gccv = z[1]
-                    break
-                for w in z:
-                    if w > test:
-                        gccv = "%s"%w
-                        test = w
+    if path.isdir(gp):
+        y = listdir(gp)
+        try:
+            for x in y:
+                if x.startswith(arch):
+                    gccm = x
+                    z = listdir("%s/%s"%(gp,x))
+                    if len(z) == 1:
+                        gccv = z[1]
+                        break
+                    for w in z:
+                        if w > test:
+                            gccv = "%s"%w
+                            test = w
+            gcc_info = "%s (%s)" %(gccv, gccm)
+        except:
+            gcc_info = "N/A"
     else:
         gcc_info = "Not installed"
-
-    gcc_info = "%s (%s)" %(gccv, gccm)
 
     if entry:
         entry.entry_set(gcc_info)
@@ -156,10 +161,9 @@ def gcc_info(entry=False):
 def xorg_info(entry=False):
     try:
         with open("/var/log/Xorg.0.log") as file:
-            for x in file:
-                if x.startswith("X.Org"):
-                    ver = x.split()[3]
-                    break
+            file = file.readlines()
+            if file[1].startswith("X.Org"):
+                ver = file[1].split()[-1]
     except:
         ver = "Not detected"
 
@@ -198,9 +202,11 @@ def uptime(entry=False):
 
     if upt >= 86400:
         days = upt/86400
-        print days.split(".")
-        if int(str(days).split(".")[1]) >= 0:
-            days = int(str(days).split(".")[0])
+        try:
+            if int(str(days).split(".")[1]) >= 0:
+                days = int(str(days).split(".")[0])
+        except:
+            pass
         upt = upt-(86400*days)
     else:
         days = 0
@@ -211,8 +217,11 @@ def uptime(entry=False):
 
     if upt >= 3600:
         hrs = upt/3600
-        if int(str(hrs).split(".")[1]) >= 0:
-            hrs = int(str(hrs).split(".")[0])
+        try:
+            if int(str(hrs).split(".")[1]) >= 0:
+                hrs = int(str(hrs).split(".")[0])
+        except:
+            pass
         upt = upt-(3600*hrs)
     else:
         hrs = 0
@@ -223,8 +232,11 @@ def uptime(entry=False):
 
     if upt >= 60:
         mns = upt/60
-        if int(str(mns).split(".")[1]) >= 0:
-            mns = int(str(mns).split(".")[0])
+        try:
+            if int(str(mns).split(".")[1]) >= 0:
+                mns = int(str(mns).split(".")[0])
+        except:
+            pass
         upt = upt-(60*mns)
     else:
         mns = 0

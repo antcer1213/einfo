@@ -2,6 +2,7 @@
 # encoding: utf-8
 import os
 import elementary as elm
+import evas
 
 """eInfo
 
@@ -87,7 +88,7 @@ class eInfo(object):
 
         win = self.win = elm.StandardWindow("einfo", "eInfo")
         win.callback_delete_request_add(lambda o: elm.exit())
-        win.resize(440, 285)
+        win.resize(400, 295)
         win.show()
 
         n = elm.Notify(self.win)
@@ -390,13 +391,19 @@ class eInfo(object):
 
             return True
 
-        def ch(hs, z):
-            for i, x in enumerate(ALPHA):
-                if ALPHA[i] == z:
-                    hs.text_set(VIEW[i])
-                    self.scale = DATA[i]
-                    genmeminfo(None)
-                    break
+        def change_scale(bt):
+            if "KB" in bt.text:
+                bt.text = "View Mode: MB"
+                self.scale = "MB"
+                genmeminfo(None)
+            elif "MB" in bt.text:
+                bt.text = "View Mode: GB"
+                self.scale = "GB"
+                genmeminfo(None)
+            else:
+                bt.text = "View Mode: KB"
+                self.scale = "KB"
+                genmeminfo(None)
 
         def mem_auto_refresh(chk):
             from ecore import Timer
@@ -414,27 +421,20 @@ class eInfo(object):
 
             genmeminfo(None)
 
-        DATA       = ["KB", "MB", "GB"]
-        VIEW       = ["View Mode: KB", "View Mode: MB", "View Mode: GB"]
-        ALPHA      = ["a", "b", "c"]
         self.scale = False
         self.pure  = False
-        NUM   = 3
 
         infobox = self.infobox
         infobox.clear()
 
         hor = self.box(infobox)
 
-        hs = elm.Hoversel(self.win)
-        hs.hover_parent_set(self.win)
-        hs.text_set("View Mode: KB")
-        for i in range(NUM):
-            ALPHA[i] = hs.item_add(VIEW[i])
-        hs.callback_selected_add(ch)
-        self.size_hints(hs, [1.0, 0.0])
-        hor.pack_end(hs)
-        hs.show()
+        bt = elm.Button(self.win)
+        bt.text = "View Mode: KB"
+        bt.callback_clicked_add(change_scale)
+        self.size_hints(bt, [1.0, 0.0])
+        hor.pack_end(bt)
+        bt.show()
 
         bt = elm.Button(self.win)
         self.icon(None, "refresh", False, False, bt)
@@ -585,30 +585,46 @@ class eInfo(object):
 
 #---------STORAGE
     def storage(self):
+        def change_scale(bt):
+            if "MB" in bt.text:
+                bt.text = "View Mode: GB"
+                genpart.create_table("GB", self.win, table=table)
+                self.scale = "GB"
+            else:
+                bt.text = "View Mode: MB"
+                genpart.create_table("MB", self.win, table=table)
+                self.scale = "MB"
+
+        def refresh(bt):
+            genpart = Partition_info()
+            genpart.create_table(self.scale, self.win, table=table)
+
+
         from generalstor import Partition_info
         genpart = Partition_info()
+
+        self.scale = "MB"
 
         infobox = self.infobox
         infobox.clear()
 
-        #~ scr = elm.Scroller(self.win)
-        #~ self.size_hints(scr, 1.0, 1.0)
-        #~ scr.policy_set(True, True)
-        #~ infobox.pack_end(scr)
-        #~ scr.show()
+        hor = self.box(infobox, [1.0, 0.0])
 
-        #~ hor = elm.Box(self.win)
-        #~ self.size_hints(hor, 1.0, 1.0)
-        #~ hor.horizontal_set(True)
-        #~ infobox.pack_end(hor)
-        #~ hor.show()
+        bt = elm.Button(self.win)
+        bt.text = "View Mode: MB"
+        bt.callback_clicked_add(change_scale)
+        self.size_hints(bt, [1.0, 0.0])
+        hor.pack_end(bt)
+        bt.show()
 
-        #~ self.lst(hor, genpart.number(), genpart.partition_name())
-        #~ self.lst(hor, genpart.number(), genpart.partition_type())
-        #~ self.lst(hor, genpart.number(), genpart.partition_free())
-        #~ self.lst(hor, genpart.number(), genpart.partition_used())
-        #~ self.lst(hor, genpart.number(), genpart.partition_size())
-        self.lst(infobox, genpart.partition_combined())
+        bt = elm.Button(self.win)
+        self.icon(None, "refresh", False, False, bt)
+        self.size_hints(bt, [0.058, 0.0])
+        bt.callback_clicked_add(refresh)
+        hor.pack_end(bt)
+        bt.show()
+
+        table = genpart.partition_table_comb(self.win, infobox)
 
         self.separator(infobox)
 
@@ -706,10 +722,10 @@ class eInfo(object):
 
             self.lst(lstbox, hwinfo.mobo_info())
 
-            moboname = ["Motherboard Information", "BIOS Information", "System Unit Information", "Memory Information", "Device Information", "Battery Information"]
-            moboinfo = [hwinfo.mobo_info, hwinfo.bios_info, hwinfo.sys_info, hwinfo.mem_info, hwinfo.pci_info, hwinfo.bat_info]
+            moboname = ["Motherboard Information", "BIOS Information", "System Unit Information", "Memory Information", "PCI Device Information", "USB Device Information", "Battery Information"]
+            moboinfo = [hwinfo.mobo_info, hwinfo.bios_info, hwinfo.sys_info, hwinfo.mem_info, hwinfo.pci_info, hwinfo.usb_info, hwinfo.bat_info]
 
-            for i in range(5):
+            for i in range(6):
                 ALPHA[i] = hs.item_add(moboname[i])
 
         def vid():
@@ -896,11 +912,9 @@ class eInfo(object):
         if type(label) is list:
             for x in label:
                 lst.item_append("            %s" %x)
-        elif "<SEP>" in label:
-            ic = elm.Image(self.win)
-            ic.file_set("/opt/eInfo/images/sep.png")
-            ic.resizable_set(True, True)
-            lst.item_append(" ", ic, None, None)
+        elif "<SEP>" in label or label == " ":
+            sep = lst.item_append(" ")
+            sep.separator_set(True)
         elif child:
             lst.item_append(" -" + label)
         else:

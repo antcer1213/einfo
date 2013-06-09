@@ -88,6 +88,7 @@ def export_as(typ, loc):
             plain.append(genstr1.model(i=i))
             plain.append(genstr1.revision(i=i))
             plain.append("\n")
+        plain.append("\n")
         for x in genstr2.partition_combined():
             plain.append("%s\n"%x)
         plain.append("\n\n\n\nHardware\n\n\n")
@@ -112,8 +113,15 @@ def export_as(typ, loc):
                     plain.append("\t%s\n"%z)
             else:
                 plain.append("%s\n"%x)
-        plain.append("\n\nDevice Information\n\n")
+        plain.append("\n\nPCI Device Information\n\n")
         for x in genhw.pci_info():
+            if type(x) is list:
+                for z in x:
+                    plain.append("\t%s\n"%z)
+            else:
+                plain.append("%s\n"%x)
+        plain.append("\n\nUSB Device Information\n\n")
+        for x in genhw.usb_info():
             if type(x) is list:
                 for z in x:
                     plain.append("\t%s\n"%z)

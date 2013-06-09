@@ -13,100 +13,207 @@ blank = " "
 
 class Partition_info():
     def __init__(self):
+        from os import system
+
+        self.data = data = []
+
         with open("/proc/partitions") as file:
-            data = file.readlines()
-        del data[0];del data[0]
-        for i, x in enumerate(data):
-            data[i] = x.split()
-        self.data = data
+            for i, x in enumerate(file):
+                if i > 1:
+                    data.append(x.split())
+
         self.num = len(data)
 
-        system("df -T > /tmp/partinfo")
-        with open("/tmp/partinfo") as file:
-            tmpdata = file.readlines()
-        del tmpdata[0]
-        self.test = tmpdata[:]
-        for i, x in enumerate(tmpdata):
-            tmpdata[i] = x.split()
-        self.tmpdata = tmpdata
-        self.tmpnum = len(tmpdata)
 
-    def rawdata(self, tmp=False):
-        if tmp:
-            return self.tmpdata
+        self.mnt_data = mnt_data = []
+
+        with open("/etc/mtab") as file:
+            mtab = file.readlines()
+        for i in range(self.num):
+            name = data[i][3]
+            if not name.isalpha():
+                if name in " ".join(mtab):
+                    for x in mtab:
+                        if name in x:
+                            mnt_data.append(x.split()[1:3])
+                else:
+                    mnt_data.append(None)
+            else:
+                mnt_data.append(None)
+
+
+        self.stat_data = stat_data = []
+
+        for x in mnt_data:
+            if x is None:
+                stat_data.append(None)
+            else:
+                stat_data.append(self.usage_stats(x[0]))
+
+
+    def usage_stats(self, path):
+        from os import statvfs
+
+        def percentage(used, total, increment):
+            try:
+                perc = (used / total) * 100
+            except:
+                perc = 0
+
+            return round(perc, increment)
+
+        info = statvfs(path)
+        free = (info.f_bavail * info.f_frsize)
+        total = (info.f_blocks * info.f_frsize)
+        used = (info.f_blocks - info.f_bfree) * info.f_frsize
+        percent = percentage(used, total, 1)
+        # NB: the percentage is -5% than what shown by df due to
+        # reserved blocks that we are currently not considering:
+        # http://goo.gl/sWGbH
+        return [total, used, free, percent]
+
+    def rawdata(self, data=False, mnt=False, stat=False):
+        if data and mnt and stat:
+            return self.data, self.mnt_data, self.stat_data
+        elif mnt and stat:
+            return self.mnt_data, self.stat_data
+        elif mnt:
+            return self.mnt_data
+        elif stat:
+            return self.stat_data
         else:
             return self.data
 
-    def number(self, tmp=False):
-        if tmp:
-            return self.tmpnum
-        else:
-            return self.num
+    def number(self):
+        return self.num
 
-    def partition_name(self):
+    def partition_name(self, tb=False):
         partname = []
-        partname.append('Name'.ljust(8))
-        for i in range(self.num):
-            name = self.data[i][3]
-            partname.append(name.ljust(8))
+        if tb:
+            for i in range(self.num):
+                index = str(i)
+                index = {}
+                index['Category0'] = "<b>Name</b>"
+                index['Category1'] = "<b>Device</b>"
+                index['Category2'] = "<b>Mounted</b>"
+                index['Name'] = self.data[i][3]
+                index['Device Path'] = "/dev/%s"%self.data[i][3]
+                if self.mnt_data[i] is None:
+                    index['Mount Point'] = None
+                else:
+                    index['Mount Point'] = self.mnt_data[i][0]
+                partname.append(index)
+        else:
+            partname.append('Name'.ljust(8))
+            for i in range(self.num):
+                name = self.data[i][3]
+                partname.append(name.ljust(8))
+
         return partname
 
-    def partition_size(self):
+    def partition_size(self, tb=False):
         partsize = []
-        partsize.append('Total'.ljust(12))
-        for i in range(self.num):
-            size = int(self.data[i][2])/1024
-            size = '{:,}'.format(size)
-            size = size + " MB"
-            partsize.append(size.ljust(12))
+
+        if tb:
+            for i in range(self.num):
+                index = str(i)
+                index = {}
+                index['Category'] = "<b>Total</b>"
+                size = int(self.data[i][2])/1024
+                strsiz = '{:,}'.format(size)
+                index['Total(MB)'] = strsiz + " MB"
+                size = round(round(int(self.data[i][2]), 4)/1048576, 2)
+                strsiz = '{:,}'.format(size)
+                index['Total(GB)'] = strsiz + " GB"
+                partsize.append(index)
+        else:
+            partsize.append('Total'.ljust(12))
+            for i in range(self.num):
+                size = int(self.data[i][2])/1024
+                size = '{:,}'.format(size)
+                size = size + " MB"
+                partsize.append(size.ljust(12))
+
         return partsize
 
-    def partition_type(self):
+    def partition_type(self, tb=False):
         parttype = []
-        parttype.append('Type'.ljust(10))
-        for x in self.data:
-            if x[3].isalpha():
-                parttype.append(blank.ljust(10))
-            elif x[3] in "".join(self.test):
-                for i in range(self.tmpnum):
-                    if x[3] in self.tmpdata[i][0]:
-                        parttype.append(self.tmpdata[i][1].ljust(10))
-            else:
-                parttype.append(blank.ljust(10))
+
+        if tb:
+            for i in range(self.num):
+                index = str(i)
+                index = {}
+                index['Category'] = "<b>Type</b>"
+                if self.mnt_data[i] is None:
+                    index['Type'] = None
+                else:
+                    index['Type'] = self.mnt_data[i][1]
+                parttype.append(index)
+        else:
+            parttype.append('Type'.ljust(10))
+            for i in range(self.num):
+                if self.mnt_data[i] is None:
+                    parttype.append(blank.ljust(10))
+                else:
+                    ftype = self.mnt_data[i][1]
+                    parttype.append(ftype.ljust(10))
+
         return parttype
 
-    def partition_used(self):
+    def partition_used(self, tb=False):
         partused = []
-        partused.append('Used'.ljust(12))
-        for x in self.data:
-            if x[3].isalpha():
-                partused.append(blank.ljust(12))
-            elif x[3] in "".join(self.test):
-                for i in range(self.tmpnum):
-                    if x[3] in self.tmpdata[i][0]:
-                        used = int(self.tmpdata[i][3])/1024
-                        used = '{:,}'.format(used)
-                        used = used + " MB"
-                        partused.append(used.ljust(12))
-            else:
-                partused.append(blank.ljust(12))
+
+        if tb:
+            for i in range(self.num):
+                index = str(i)
+                index = {}
+                index['Category'] = "<b>Used</b>"
+                if self.stat_data[i] is None:
+                    index['Used(MB)'] = None
+                    index['Used(GB)'] = None
+                else:
+                    index['Used(MB)'] = '{:,}'.format(self.stat_data[i][1]/1048576) + " MB"
+                    index['Used(GB)'] = '{:,}'.format(round(round(self.stat_data[i][1], 4)/1073741824, 2)) + " GB"
+                partused.append(index)
+        else:
+            partused.append('Used'.ljust(12))
+            for i in range(self.num):
+                if self.stat_data[i] is None:
+                    partused.append(blank.ljust(12))
+                else:
+                    used = int(self.stat_data[i][1])/1048576
+                    used = '{:,}'.format(used)
+                    used = used + " MB"
+                    partused.append(used.ljust(12))
+
         return partused
 
-    def partition_free(self):
+    def partition_free(self, tb=False):
         partfree = []
-        partfree.append('Free'.ljust(12))
-        for x in self.data:
-            if x[3].isalpha():
-                partfree.append(blank.ljust(12))
-            elif x[3] in "".join(self.test):
-                for i in range(self.tmpnum):
-                    if x[3] in self.tmpdata[i][0]:
-                        free = int(self.tmpdata[i][4])/1024
-                        free = '{:,}'.format(free)
-                        free = free + " MB"
-                        partfree.append(free.ljust(12))
-            else:
-                partfree.append(blank.ljust(12))
+
+        if tb:
+            for i in range(self.num):
+                index = str(i)
+                index = {}
+                index['Category'] = "<b>Free</b>"
+                if self.stat_data[i] is None:
+                    index['Free(MB)'] = None
+                    index['Free(GB)'] = None
+                else:
+                    index['Free(MB)'] = '{:,}'.format(self.stat_data[i][2]/1048576) + " MB"
+                    index['Free(GB)'] = '{:,}'.format(round(round(self.stat_data[i][2], 4)/1073741824, 2)) + " GB"
+                partfree.append(index)
+        else:
+            partfree.append('Free'.ljust(12))
+            for i in range(self.num):
+                if self.stat_data[i] is None:
+                    partfree.append(blank.ljust(12))
+                else:
+                    free = int(self.stat_data[i][2])/1048576
+                    free = '{:,}'.format(free)
+                    free = free + " MB"
+                    partfree.append(free.ljust(12))
+
         return partfree
 
     def partition_combined(self):
@@ -121,17 +228,78 @@ class Partition_info():
         for i in range(self.num):
             comb = "%s  |   %s  |   %s  |  %s   |  %s" %(name[i], typ[i], free[i], used[i], total[i])
             partcomb.append(comb)
+
         return partcomb
 
+    def partition_table_comb(self, win, box):
+        from evas import EVAS_HINT_FILL, EVAS_HINT_EXPAND
+        from elementary import Scroller
 
+        table = self.create_table("MB", win, box)
+
+        sc = Scroller(win)
+        sc.content_set(table)
+        sc.policy_set(1, 1)
+        sc.size_hint_weight_set(EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
+        sc.size_hint_align_set(EVAS_HINT_FILL, EVAS_HINT_FILL)
+        box.pack_end(sc)
+        sc.show()
+
+        return table
+
+    def create_table(self, scale, win, box= False, table=False):
+        from evas import EVAS_HINT_FILL, EVAS_HINT_EXPAND
+        from elementary import Table, Label
+
+        def label(win, label):
+            lb = Label(win)
+            lb.text = label
+            lb.show()
+            return lb
+
+        name  = self.partition_name(True)
+        typ   = self.partition_type(True)
+        free  = self.partition_free(True)
+        used  = self.partition_used(True)
+        total = self.partition_size(True)
+
+        if table:
+            table.clear(True)
+        else:
+            table = Table(win)
+            table.padding_set(1, 1)
+            table.size_hint_weight_set(EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
+            table.size_hint_align_set(EVAS_HINT_FILL, EVAS_HINT_FILL)
+            #~ table.homogeneous_set(True)
+            table.show()
+
+        table.pack(label(win,  name[0]['Category0']), 0, 0, 1, 1)
+        table.pack(label(win,   typ[0]['Category']),  1, 0, 1, 1)
+        table.pack(label(win,  name[0]['Category1']), 2, 0, 1, 1)
+        table.pack(label(win,  name[0]['Category2']), 3, 0, 1, 1)
+        table.pack(label(win,  free[0]['Category']),  4, 0, 1, 1)
+        table.pack(label(win,  used[0]['Category']),  5, 0, 1, 1)
+        table.pack(label(win, total[0]['Category']),  6, 0, 1, 1)
+
+        for i in range(self.num):
+            table.pack(label(win,  name[i]['Name']),        0, i+1, 1, 1)
+            table.pack(label(win,   typ[i]['Type']),        1, i+1, 1, 1)
+            table.pack(label(win,  name[i]['Device Path']), 2, i+1, 1, 1)
+            table.pack(label(win,  name[i]['Mount Point']), 3, i+1, 1, 1)
+            table.pack(label(win,  free[i]['Free(%s)'%scale]),    4, i+1, 1, 1)
+            table.pack(label(win,  used[i]['Used(%s)'%scale]),    5, i+1, 1, 1)
+            table.pack(label(win, total[i]['Total(%s)'%scale]),   6, i+1, 1, 1)
+
+        return table
 
 
 class Storage_info():
     def __init__(self):
+        data = []
         with open("/proc/scsi/sg/device_strs") as file:
-            data = file.readlines()
-        for i, x in enumerate(data):
-            data[i] = x.split("\t")
+            for x in file:
+                if not "no active device" in x:
+                    data.append(x.split("\t"))
         self.num = len(data)
         self.data = data
 
