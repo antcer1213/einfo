@@ -34,7 +34,7 @@ def splitter(lst, breaker, search=False):
     yield current
 
 def export_as(typ, loc):
-    import generalsys, generalcpu, generalmem, generalstor,generalhw
+    import generalsys, generalcpu, generalmem, generalstor, generalhw
 
     gencpu  = generalcpu.CPU_info()
     genmem  = generalmem.Memory_Info("MB")

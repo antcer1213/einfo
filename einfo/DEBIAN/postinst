@@ -1,10 +1,6 @@
 #!/bin/sh
 chmod +x /opt/eInfo/einfo.py
-#~ update-rc.d -f sysinfoupdate start 99 2 3 4 5 .
-
 chown -R $USER /opt/eInfo/info
-#~ chown root:root /opt/eInfo/updateinfo
-#~ chmod 4755 /opt/eInfo/updateinfo
 
 echo "ALL ALL=NOPASSWD: /opt/eInfo/einfo.py" > /etc/sudoers.d/einfo
 chmod 0440 /etc/sudoers.d/einfo

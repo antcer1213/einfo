@@ -239,7 +239,7 @@ class Partition_info():
 
         sc = Scroller(win)
         sc.content_set(table)
-        sc.policy_set(1, 1)
+        sc.policy_set(0, 0)
         sc.size_hint_weight_set(EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
         sc.size_hint_align_set(EVAS_HINT_FILL, EVAS_HINT_FILL)
         box.pack_end(sc)
@@ -253,6 +253,13 @@ class Partition_info():
 
         def label(win, label):
             lb = Label(win)
+            lb.size_hint_weight_set(EVAS_HINT_EXPAND, 0.0)
+            if label is None:
+                pass
+            elif " MB" in label or " GB" in label or "Free" in label or "Used" in label or "Total" in label:
+                lb.size_hint_align_set(1.0, EVAS_HINT_FILL)
+            else:
+                lb.size_hint_align_set(-1.0, EVAS_HINT_FILL)
             lb.text = label
             lb.show()
             return lb
@@ -267,7 +274,7 @@ class Partition_info():
             table.clear(True)
         else:
             table = Table(win)
-            table.padding_set(1, 1)
+            table.padding_set(0, 1)
             table.size_hint_weight_set(EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
             table.size_hint_align_set(EVAS_HINT_FILL, EVAS_HINT_FILL)
             #~ table.homogeneous_set(True)

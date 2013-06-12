@@ -22,7 +22,6 @@ class Hardware_Info():
         pass
 
     def mobo_info(self):
-        #~ data = dmidecode.baseboard().values()
         mobo = []
 
         for v in dmidecode.baseboard().values():
@@ -36,7 +35,6 @@ class Hardware_Info():
         return mobo
 
     def bios_info(self):
-        #~ data = dmidecode.bios().values()
         char = []
 
         for v in dmidecode.bios().values():
@@ -69,7 +67,6 @@ class Hardware_Info():
 
 
     def sys_info(self):
-        #~ data = dmidecode.system().values()
         sys = []
 
         for v in dmidecode.system().values():
@@ -102,7 +99,6 @@ class Hardware_Info():
         vdid  = []
         pdid  = []
         prod  = []
-        #~ root  = []
         speed = []
 
         usb   = []
@@ -110,7 +106,6 @@ class Hardware_Info():
 
         for v in data2:
             #~ sysp.append(v)
-            #~ root.append(True)
             with open("%s/idVendor"%v) as file:
                 vdid.append(file.readline()[:-1])
             with open("%s/idProduct"%v) as file:
@@ -126,7 +121,6 @@ class Hardware_Info():
             for x in listdir(v):
                 if x[0].isdigit() and not ":1.0" in x and path.exists("%s/%s/product"%(v, x)):
                     #~ sysp.append("%s/%s"%(v, x))
-                    #~ root.append(False)
                     with open("%s/%s/idVendor"%(v, x)) as file:
                         vdid.append(file.readline()[:-1])
                     with open("%s/%s/idProduct"%(v, x)) as file:
@@ -145,20 +139,12 @@ class Hardware_Info():
         for index, x in enumerate(vdid):
             if usbnum > 0:
                 usb.append(" ")
-            #~ if root[index]:
             usb.append("USB Device %s"%index)
-            usb.append("Bus Number: %s" %busid[index])
-            usb.append("Device Number: %s" %devid[index])
-            usb.append("Vendor ID: %s" %x)
-            usb.append("Product ID: %s" %pdid[index])
+            usb.append("Bus+Device Number:   %s:%s" %(busid[index], devid[index]))
+            #~ usb.append("Device Number: %s" %devid[index])
+            usb.append("Vendor+Product ID:   %s:%s" %(x, pdid[index]))
+            #~ usb.append("Product ID: %s" %pdid[index])
             usb.append("Product Name: %s" %prod[index])
-            #~ else:
-                #~ usb.append("        USB Device %s"%index)
-                #~ usb.append("        Bus Number: %s" %busid[index])
-                #~ usb.append("        Device Number: %s" %devid[index])
-                #~ usb.append("        Vendor ID: %s" %x)
-                #~ usb.append("        Product ID: %s" %pdid[index])
-                #~ usb.append("        Product Name: %s" %prod[index])
 
             usbnum += 1
             for i, v in enumerate(data):
@@ -170,39 +156,20 @@ class Hardware_Info():
                     if v.split()[0] == x:
                         tmp = v.split()
                         del tmp[0]
-                        #~ if root[index]:
                         usb.append("Vendor Name: %s" %" ".join(tmp))
-                        #~ else:
-                            #~ usb.append("        Vendor Name: %s" %" ".join(tmp))
                         try:
                             num = i + 1
                             while not pdid[index] == data[num][1:].split()[0]:
                                 num += 1
                             tmp = data[num][1:].split()
                             del tmp[0]
-                            #~ if root[index]:
                             usb.append("Device Name: %s" %" ".join(tmp))
                             usb.append("Speed: %s MB/s" %speed[index])
-                            #~ else:
-                                #~ usb.append("        Device Name: %s" %" ".join(tmp))
-                                #~ usb.append("        Speed: %s MB/s" %speed[index])
                         except:
-                            #~ if root[index]:
                             usb.append("Device Name: N/A")
                             usb.append("Speed: %s MB/s" %speed[index])
-                            #~ else:
-                                #~ usb.append("        Device Name: N/A")
-                                #~ usb.append("        Speed: %s MB/s" %speed[index])
                     else:
                         pass
-        #~ del data
-        #~ del busid
-        #~ del devid
-        #~ del vdid
-        #~ del pdid
-        #~ del prod
-        #~ del root
-        #~ del speed
 
         return usb
 
@@ -224,10 +191,8 @@ class Hardware_Info():
             if pcinum > 0:
                 pci.append(" ")
             pci.append("PCI Device %s"%index)
-            VID = v[0:4]
-            pci.append("Vendor ID: %s" %VID)
-            DID = v[4:]
-            pci.append("Device ID: %s" %DID)
+            VID = v[0:4] ;DID = v[4:]
+            pci.append("Vendor+Device ID:   %s:%s" %(VID, DID))
             pcinum += 1
             for i, v in enumerate(data):
                 if v.startswith("#"):
@@ -247,10 +212,6 @@ class Hardware_Info():
                         pci.append("Device: %s" %" ".join(tmp))
                         while data[num+1].startswith("\t\t"):
                             tmp = data[num+1][2:].split()
-                            #~ print pcinum
-                            #~ print data2[pcinum-1]
-                            #~ print open("/sys/bus/pci/devices/%s/subsystem_vendor"%data2[pcinum-1]).readline()[2:-1]
-                            #~ print tmp[0]
                             with open("/sys/bus/pci/devices/%s/subsystem_vendor"%data2[pcinum-1]) as file:
                                 sysvend = file.readline()[2:-1]
                             with open("/sys/bus/pci/devices/%s/subsystem_device"%data2[pcinum-1]) as file:
@@ -262,16 +223,10 @@ class Hardware_Info():
                     else:
                         pass
 
-        #~ del data
-        #~ del data1
-        #~ del data2
-        #~ del vdid
-
         return pci
 
 
     def mem_info(self):
-        #~ data = dmidecode.memory().values()
         mem = []
         arraynum = 0
         memnum = 0
@@ -337,7 +292,6 @@ class Hardware_Info():
 
 
     def vid_info(self):
-        #~ data = dmidecode.connector().values()
         vid = []
         vidport = 0
 
@@ -617,6 +571,21 @@ class Hardware_Info():
         return net
 
     def net_int_loc_info(self):
+        def with_func(path):
+            with open(path) as file:
+                info = file.readline()[:-1]
+            return info
+        def bytes_conv(B):
+            if B >= 1000 and B < 1000000:
+                B = str(B) + " (%s KB)"%(B/1000)
+            elif B >= 1000000 and B < 1000000000:
+                B = str(B) + " (%s MB)"%(B/1000000)
+            elif B >= 1000000000:
+                B = str(B) + " (%s GB)"%(B/1000000000)
+            else:
+                B = str(B)
+            return B
+
         data = listdir("/sys/class/net/")
 
         net = []
@@ -626,8 +595,7 @@ class Hardware_Info():
                 net.append(" ")
             net.append("Interface %s" %i)
             net.append("Name: %s" %x)
-            with open("/sys/class/net/%s/address" %x) as file:
-                net.append("HW Address: %s" %(file.readline()[:-1]))
+            net.append("HW Address: %s" %with_func("/sys/class/net/%s/address" %x))
             if self.get_ip(x):
                 net.append("IPv4 Address: %s" %(self.get_ip(x)))
             if self.get_ip6(x):
@@ -636,54 +604,25 @@ class Hardware_Info():
                 net.append("Broadcast: %s" %(self.get_brdcst(x)))
             if self.get_netmsk(x):
                 net.append("Netmask: %s" %(self.get_netmsk(x)))
-            with open("/sys/class/net/%s/tx_queue_len" %x) as file:
-                net.append("TX Queue Len: %s" %(file.readline()[:-1]))
-            with open("/sys/class/net/%s/mtu" %x) as file:
-                net.append("MTU: %s" %(file.readline()[:-1]))
-            with open("/sys/class/net/%s/statistics/collisions" %x) as file:
-                net.append("Collisions: %s" %(file.readline()[:-1]))
+            net.append("TX Queue Len: %s" %with_func("/sys/class/net/%s/tx_queue_len" %x))
+            net.append("MTU: %s" %with_func("/sys/class/net/%s/mtu" %x))
+            net.append("Collisions: %s" %with_func("/sys/class/net/%s/statistics/collisions" %x))
             net.append("RX:")
-            with open("/sys/class/net/%s/statistics/rx_bytes" %x) as file:
-                B = Decimal(int(file.readline()[:-1]))
-            if B >= 1000 and B < 1000000:
-                B = str(B) + " (%s KB)"%(B/1000)
-            elif B >= 1000000 and B < 1000000000:
-                B = str(B) + " (%s MB)"%(B/1000000)
-            elif B >= 1000000000:
-                B = str(B) + " (%s GB)"%(B/1000000000)
-            else:
-                B = str(B)
-            with open("/sys/class/net/%s/statistics/rx_packets" %x) as file:
-                packets = file.readline()[:-1]
-            with open("/sys/class/net/%s/statistics/rx_errors" %x) as file:
-                errors  = file.readline()[:-1]
-            with open("/sys/class/net/%s/statistics/rx_dropped" %x) as file:
-                dropped  = file.readline()[:-1]
-            with open("/sys/class/net/%s/statistics/rx_over_errors" %x) as file:
-                overruns  = file.readline()[:-1]
-            with open("/sys/class/net/%s/statistics/rx_frame_errors" %x) as file:
-                frame  = file.readline()[:-1]
+            B = Decimal(int(with_func("/sys/class/net/%s/statistics/rx_bytes" %x)))
+            B = bytes_conv(B)
+            packets  = with_func("/sys/class/net/%s/statistics/rx_packets" %x)
+            errors   = with_func("/sys/class/net/%s/statistics/rx_errors" %x)
+            dropped  = with_func("/sys/class/net/%s/statistics/rx_dropped" %x)
+            overruns = with_func("/sys/class/net/%s/statistics/rx_over_errors" %x)
+            frame    = with_func("/sys/class/net/%s/statistics/rx_frame_errors" %x)
             net.append(["Bytes: %s"%(B), "Packets: %s"%packets, "Errors: %s"%errors, "Dropped: %s"%dropped, "Overruns: %s"%overruns, "Frame: %s"%frame])
             net.append("TX:")
-            with open("/sys/class/net/%s/statistics/tx_bytes" %x) as file:
-                B = Decimal(int(file.readline()[:-1]))
-            if B >= 1000 and B < 1000000:
-                B = str(B) + " (%s KB)"%(B/1000)
-            elif B >= 1000000 and B < 1000000000:
-                B = str(B) + " (%s MB)"%(B/1000000)
-            elif B >= 1000000000:
-                B = str(B) + " (%s GB)"%(B/1000000000)
-            else:
-                B = str(B)
-            with open("/sys/class/net/%s/statistics/tx_packets" %x) as file:
-                packets = file.readline()[:-1]
-            with open("/sys/class/net/%s/statistics/tx_errors" %x) as file:
-                errors  = file.readline()[:-1]
-            with open("/sys/class/net/%s/statistics/tx_dropped" %x) as file:
-                dropped  = file.readline()[:-1]
-            with open("/sys/class/net/%s/statistics/tx_carrier_errors" %x) as file:
-                carrier  = file.readline()[:-1]
-
+            B = Decimal(int(with_func("/sys/class/net/%s/statistics/tx_bytes" %x)))
+            B = bytes_conv(B)
+            packets  = with_func("/sys/class/net/%s/statistics/tx_packets" %x)
+            errors   = with_func("/sys/class/net/%s/statistics/tx_errors" %x)
+            dropped  = with_func("/sys/class/net/%s/statistics/tx_dropped" %x)
+            carrier  = with_func("/sys/class/net/%s/statistics/tx_carrier_errors" %x)
             net.append(["Bytes: %s"%(B), "Packets: %s"%packets, "Errors: %s"%errors, "Dropped: %s"%dropped, "Carrier: %s"%carrier])
 
         return net
