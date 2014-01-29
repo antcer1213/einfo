@@ -2,8 +2,11 @@
 chmod +x /opt/eInfo/einfo.py
 chown -R $USER /opt/eInfo/info
 
-echo "ALL ALL=NOPASSWD: /opt/eInfo/einfo.py" > /etc/sudoers.d/einfo
-chmod 0440 /etc/sudoers.d/einfo
+SUDOER="/etc/sudoers.d/einfo"
+
+chmod 0440 $SUDOER
+chown root $SUDOER
+chgrp root $SUDOER
 
 if [ "`ping -c 1 google.com`" ]; then
     update-pciids

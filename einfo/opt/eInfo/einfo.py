@@ -12,6 +12,12 @@ By: AntCer (bodhidocs@gmail.com)
 Started: March 29, 2013
 """
 
+if not os.path.exists("/proc"):
+    print("eInfo Dependency Error: Procfs is not mounted. Path, /proc, does not exist.")
+    quit()
+elif not os.path.exists("/sys"):
+    print("eInfo Dependency Error: Sysfs is not mounted. Path, /sys, does not exist.")
+    quit()
 
 
 class eInfo(object):
@@ -259,8 +265,8 @@ class eInfo(object):
         import generalcpu
         infobox = self.infobox
 
-        CPU = ["cpu0", "cpu1", "cpu2", "cpu3"]
-        ALPHA = ["a", "b", "c", "d"]
+        CPU = ["cpu0", "cpu1", "cpu2", "cpu3", "cpu4", "cpu5", "cpu6", "cpu7", "cpu8", "cpu9"]
+        ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
         self.i = 0
 
         infobox.clear()
