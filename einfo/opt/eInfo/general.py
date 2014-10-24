@@ -1,22 +1,34 @@
 
-def run(command, entry, append=False):
+def run(command, entry, append=False, endfx=False):
     from ecore import Exe
 
-    def received_data(cmd, event, append, *args, **kwargs):
+    def received_data(cmd, event, entry, append, *args, **kwargs):
         if append:
             output = event.data
-            output = output.replace("\n", "")
-            entry.entry_append(" (%s)" %output)
+            if type(entry) == str:
+                entry += output
+            else:
+                output = output.replace("\n", "")
+                entry.entry_append(" (%s)" %output)
         else:
-            entry.entry_set(event.data)
+            if type(entry) == str:
+                entry = event.data
+            else:
+                entry.entry_set(event.data)
 
-    def command_done(cmd, event, *args, **kwargs):
+    def command_done(cmd, event, entry, command, *args, **kwargs):
         if event.exit_code is not 0:
-            entry.entry_set("N/A")
+            if type(entry) == str:
+                entry = "N/A"
+            else:
+                entry.entry_set("N/A")
+        else:
+            if endfx:
+                endfx[0](endfx[1], endfx[2], endfx[3])
 
     cmd = Exe(command, 1|4)
-    cmd.on_data_event_add(received_data, append)
-    cmd.on_del_event_add(command_done)
+    cmd.on_data_event_add(received_data, entry, append)
+    cmd.on_del_event_add(command_done, entry, endfx)
 
 def splitter(lst, breaker, search=False):
     current = []
@@ -63,7 +75,7 @@ def export_as(typ, loc):
         plain.append("Language: %s\n"%generalsys.language())
         plain.append("\n\n\nCPU\n")
         for i in range(gencpu.number()):
-            plain.append("\ncpu%s\n"%i)
+            plain.append("\nProcessor %s\n"%i+1)
             plain.append("Vendor: %s\n"%gencpu.vendor_id(i=i))
             plain.append("Model Name: %s\n"%gencpu.model_name(i=i))
             plain.append("CPU Arch: %s\n"%gencpu.cpu_arch(i=i))

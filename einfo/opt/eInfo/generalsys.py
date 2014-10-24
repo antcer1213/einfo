@@ -78,12 +78,12 @@ def kernel_arch(entry=False):
 
 
 def boot_cmd(win=False):
-    from elementary import Popup, Entry, Button, Icon
-
+    with open("/proc/cmdline") as file1:
+        bootcmd = file1.readline()[:-1]
     if win:
+        from elementary import Popup, Entry, Button, Icon
         en = Entry(win)
-        en.file_set("/proc/cmdline", 0)
-
+        en.entry_set(bootcmd)
         bt = Button(win)
         bt.text = "Close"
         bt.callback_clicked_add(lambda o: popup.delete())
@@ -99,10 +99,7 @@ def boot_cmd(win=False):
         popup.part_content_set("button1", bt)
         popup.show()
     else:
-        file = open("/proc/cmdline")
-        cmdline = file.readline()[:-1]
-        file.close()
-        return cmdline
+        return bootcmd
 
 def display_man(entry=False):
     with open("/etc/X11/default-display-manager") as file:

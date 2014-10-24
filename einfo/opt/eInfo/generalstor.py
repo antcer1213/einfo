@@ -301,6 +301,65 @@ class Partition_info():
 
 
 class Storage_info():
+    def __init__(self, ecore=False):
+        import showsmart as smart
+        self.data = {}
+        devices = smart.get_block_devices()
+        self.num = len(devices)
+        for dev in devices:
+            if ecore:
+                self.data[dev] = smart.process_device(dev, self.receive_processed_data, "ecore")
+            else:
+                self.data[dev] = smart.process_device(dev, self.receive_processed_data)
+    def number(self,values=False):
+        if values:
+            try:
+                return self.valuenum
+            except:
+                self.valuenum = len(self.data[self.data.keys()[0]].values())
+                return self.valuenum
+        return self.num
+    def devices(self):
+        return self.data.keys();
+    def receive_processed_data(self, dev, data):
+        self.data[dev]= data
+    def return_data(self, i=False, entries=False):
+        if entries:
+            data = self.data[self.data.keys()[i]]
+            for r in range(len(entries)):
+                entries[r].entry_set(data.values()[r])
+        else:
+            return self.data
+    def return_list(self,i=0):
+        info_keys0 = [x for x in self.data[self.devices()[i]]['info'].keys() if self.data[self.devices()[i]]['info'][x] != False]
+        stat_keys0 = [x for x in self.data[self.devices()[i]]['stats'].keys() if self.data[self.devices()[i]]['stats'][x] != False]
+
+        info_keys = []
+        stat_keys = []
+        for x in self.return_info_keys():
+            if x in info_keys0:
+                info_keys.append(x)
+        for x in self.return_stat_keys():
+            if x in stat_keys0:
+                stat_keys.append(x)
+
+        list_items = ['Information']
+        for key in info_keys:
+            list_items.append("%s : %s"%(key, self.data[self.devices()[i]]['info'][key]))
+        list_items.append("")
+        list_items.append("SMART Statistics")
+        list_items.append("Health Status : %s"%self.data[self.devices()[i]]['stats']['Health Status'])
+        for key in stat_keys:
+            if key != "Health Status":
+                list_items.append("%s : %s"%(key, self.data[self.devices()[i]]['stats'][key]))
+        return list_items
+    def return_info_keys(self):
+        #~ data['info']['Device is'] = get_param_from_smart(d,"Device is:",delimiter=":")
+        return ['Model Family','Device Model','Serial Number','LU WWN Device ID','Firmware Version','User Capacity','Sector Size','Rotation Rate','ATA Version','SATA Version','SMART Support']
+    def return_stat_keys(self):
+        return ['Health Status','Spin-Up Time','Start/Stop Count','Reallocated Sector Count','Power-On Hours','Power Cycle Count','Host Writes (32MiB)','Work ID - Media Wear Indicator','Work ID - Host Reads Percentage','Workload Minutes','Available Reserved Space','Media Wearout Indicator','End-to-end Error']
+
+class Storage_info_old():
     def __init__(self):
         data = []
         with open("/proc/scsi/sg/device_strs") as file:

@@ -139,7 +139,7 @@ class Hardware_Info():
         for index, x in enumerate(vdid):
             if usbnum > 0:
                 usb.append(" ")
-            usb.append("USB Device %s"%index)
+            usb.append("USB Device %s"%(index+1))
             usb.append("Bus+Device Number:   %s:%s" %(busid[index], devid[index]))
             #~ usb.append("Device Number: %s" %devid[index])
             usb.append("Vendor+Product ID:   %s:%s" %(x, pdid[index]))
@@ -190,7 +190,7 @@ class Hardware_Info():
         for index, v in enumerate(vdid):
             if pcinum > 0:
                 pci.append(" ")
-            pci.append("PCI Device %s"%index)
+            pci.append("PCI Device %s"%(index+1))
             VID = v[0:4] ;DID = v[4:]
             pci.append("Vendor+Device ID:   %s:%s" %(VID, DID))
             pcinum += 1
@@ -226,14 +226,55 @@ class Hardware_Info():
         return pci
 
 
-    def mem_info(self):
+    def mem_info(self, quantity=False, array=False, sticks=False, i=False):
         mem = []
-        arraynum = 0
-        memnum = 0
+        arraynum = 1
+        memnum = 1
+        if i != False:
+            i = i-1
+            data = {}
+            for r in range(self.mem_info(quantity=True)):
+                data['Memory Device %s'%(r+1)] = {}
+            for h, v in enumerate(dmidecode.memory().values()):
+                if v['dmi_type'] == 17: #Memory Device
+                    data['Memory Device %s'%(h+1)]['Size'] = v['data']['Size']
+                    data['Memory Device %s'%(h+1)]['Form Factor'] = v['data']['Form Factor']
+                    data['Memory Device %s'%(h+1)]['Type'] = v['data']['Type']
+                    data['Memory Device %s'%(h+1)]['Speed'] = v['data']['Speed']
+                    data['Memory Device %s'%(h+1)]['Manufacturer'] = v['data']['Manufacturer']
+                    data['Memory Device %s'%(h+1)]['Locator'] = v['data']['Locator']
+                    data['Memory Device %s'%(h+1)]['Bank Locator'] = v['data']['Bank Locator']
+                    data['Memory Device %s'%(h+1)]['Data Width'] = v['data']['Data Width']
+                    data['Memory Device %s'%(h+1)]['Total Width'] = v['data']['Total Width']
+                    data['Memory Device %s'%(h+1)]['Serial Number'] = v['data']['Serial Number']
+                    data['Memory Device %s'%(h+1)]['Part Number'] = v['data']['Part Number']
+                    #~ mem.append("Configured Clock Speed: %s" %(v['data']['Configured Clock Speed']))
+                    #~ mem.append("Rank: %s" %(v['data']['Rank']))
+                    data['Memory Device %s'%(h+1)]['Type Detail'] = v['data']['Type Detail']
+
+            list_items = []
+            for key in data['Memory Device %s'%(i+1)].keys():
+                if key == "Type Detail":
+                    list_items.append("Type Detail:")
+                    for it in data['Memory Device %s'%(i+1)][key]:
+                        if it != None:
+                            list_items.append("    %s"%it)
+                else:
+                    if data['Memory Device %s'%(i+1)][key] != "":
+                        list_items.append("%s : %s"%(key,data['Memory Device %s'%(i+1)][key]))
+
+            return list_items
+
+        if quantity:
+            quantity = 0
+            for v in dmidecode.memory().values():
+                if v['dmi_type'] == 17 and not array: #Memory Device
+                    quantity += 1
+            return quantity
 
         for v in dmidecode.memory().values():
-            if v['dmi_type'] == 16: #Physical Memory Array
-                if arraynum > 0:
+            if v['dmi_type'] == 16 and not sticks: #Physical Memory Array
+                if arraynum > 1:
                     mem.append(" ")
                 mem.append("Physical Memory Array %s" %arraynum)
                 mem.append("Location: %s" %(v['data']['Location']))
@@ -242,8 +283,9 @@ class Hardware_Info():
                 mem.append("Number Of Devices: %s" %(v['data']['Number Of Devices']))
 
                 arraynum += 1
-            if v['dmi_type'] == 17: #Memory Device
-                mem.append(" ")
+            if v['dmi_type'] == 17 and not array: #Memory Device
+                if memnum > 1:
+                    mem.append(" ")
                 mem.append("Memory Device %s" %memnum)
                 mem.append("Size: %s" %(v['data']['Size']))
                 mem.append("Form Factor: %s" %(v['data']['Form Factor']))
@@ -271,7 +313,7 @@ class Hardware_Info():
 
 
     def bat_info(self):
-        data = dmidecode.type(22)
+        data = dmidecode.QueryTypeId(22)
         bat = []
 
         for x in data.keys():
@@ -287,6 +329,8 @@ class Hardware_Info():
                 bat.append("Version: %s" %(v['data']['SBDS Version']))
                 bat.append("Serial Number: %s" %(v['data']['SBDS Serial Number']))
                 bat.append("Manufacture Date: %s" %(v['data']['SBDS Manufacture Date']))
+            else:
+                bat.append("Not Applicable")
 
         return bat
 
@@ -294,8 +338,9 @@ class Hardware_Info():
     def vid_info(self):
         vid = []
         vidport = 0
+        print dmidecode.QueryTypeId(8)
 
-        for v in dmidecode.connector().values():
+        for v in dmidecode.QueryTypeId(8):
             if v['dmi_type'] == 8 and v['data']['Port Type'] == "Video Port": #Video Port
                 if vidport > 0:
                     vid.append(" ")
@@ -760,3 +805,44 @@ class Hardware_Info():
                     break
 
         return gwmac
+
+#Extraneous Data Still Available.
+
+    def systemSlotInformation(self):
+        info = []
+        count = 0
+        data = dmidecode.QueryTypeId(9)
+
+        for key in data.keys():
+            if count > 0:
+                info.append(" ")
+            v = data[key]
+            info.append("Designation: %s" %(v['data']['Designation']))
+            info.append("Type: %s %s" %(v['data']['Type:SlotBusWidth'],v['data']['Type:SlotType']))
+            info.append("Current Usage: %s" %(v['data']['Current Usage']))
+            info.append("Length: %s" %(v['data']['SlotLength']))
+            info.append("ID: %s" %(v['data']['SlotId']))
+            info.append("Characteristics: ")
+            for x in v['data']['Characteristics']:
+                if x != None:
+                    info.append("        %s"%x)
+            count += 1
+
+        return info
+
+    def onboardDeviceInformation(self):
+        info = []
+        count = 0
+        data = dmidecode.QueryTypeId(10)
+
+        for key in data.keys():
+            if count > 0:
+                info.append(" ")
+            v = data[key]['data']['dmi_on_board_devices'][count]
+            info.append("Onboard Device %s"%(count+1))
+            info.append("Type: %s" %v['Type'])
+            info.append("Enabled: %s" %v['Enabled'])
+            info.append("Description: %s" %v['Description'])
+            count += 1
+
+        return info

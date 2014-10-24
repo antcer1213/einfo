@@ -1,9 +1,9 @@
 Package: einfo
-Version: 0.7
+Version: 1.0
 Section: main
 Priority: optional
 Architecture: all
-Depends: python-elementary, python-evas, python-ecore, python-dmidecode
+Depends: python-efl, python-efl-backsupport, smartmontools, python-dmidecode
 Maintainer: Anthony Cervantes
 Description: eInfo (System Information)
  A simple Elm program to give detailed system information.

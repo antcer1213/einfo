@@ -61,15 +61,15 @@ class eInfo(object):
             tbox.pack_end(tb)
             tb.show()
 
-            tbr = elm.Toolbar(self.win)
-            opts = tbr.item_append("", "Options")
-            opts.menu_set(True)
-            tb.menu_parent_set(self.win)
-            menu = opts.menu_get()
-            menu.item_add(label="Export as Plain Text", callback=lambda a,b: exporting())
-            tbr.homogeneous_set(True)
-            tbox.pack_end(tbr)
-            tbr.show()
+            #~ tbr = elm.Toolbar(self.win)
+            #~ opts = tbr.item_append("", "Options")
+            #~ opts.menu_set(True)
+            #~ tb.menu_parent_set(self.win)
+            #~ menu = opts.menu_get()
+            #~ menu.item_add(label="Export as Plain Text", callback=lambda a,b: exporting())
+            #~ tbr.homogeneous_set(True)
+            #~ tbox.pack_end(tbr)
+            #~ tbr.show()
 
             self.separator(vbox)
 
@@ -94,7 +94,7 @@ class eInfo(object):
 
         win = self.win = elm.StandardWindow("einfo", "eInfo")
         win.callback_delete_request_add(lambda o: elm.exit())
-        win.resize(445, 295)
+        win.resize(490, 575)
         win.show()
 
         n = elm.Notify(self.win)
@@ -255,9 +255,9 @@ class eInfo(object):
             gencpu.flags(info10, i)
 
         def ch(hs, z):
-            for i, x in enumerate(ALPHA):
-                if ALPHA[i] == z:
-                    hs.text_set(CPU[i])
+            for i, x in enumerate(CPU):
+                if CPU[i] == z:
+                    hs.text_set("Processor "+str(i+1))
                     self.i = i
                     gencpuinfo()
                     break
@@ -265,8 +265,7 @@ class eInfo(object):
         import generalcpu
         infobox = self.infobox
 
-        CPU = ["cpu0", "cpu1", "cpu2", "cpu3", "cpu4", "cpu5", "cpu6", "cpu7", "cpu8", "cpu9"]
-        ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+        CPU = []
         self.i = 0
 
         infobox.clear()
@@ -275,9 +274,9 @@ class eInfo(object):
 
         hs = elm.Hoversel(self.win)
         hs.hover_parent_set(self.win)
-        hs.text_set("cpu0")
+        hs.text_set("Processor 1")
         for i in range(generalcpu.number_of_cpus()):
-            ALPHA[i] = hs.item_add(CPU[i])
+            CPU.append(hs.item_add("Processor "+str(i+1)))
         hs.callback_selected_add(ch)
         self.size_hints(hs, [1.0, 0.0])
         hor.pack_end(hs)
@@ -374,6 +373,7 @@ class eInfo(object):
             from generalmem import Memory_Info
 
             genmem = Memory_Info(self.scale)
+            self.genmem = genmem
             genmem.memtotal(info0)
             genmem.buffers(info3)
             genmem.active(info4)
@@ -581,12 +581,41 @@ class eInfo(object):
         self.label(inhor, "Cached:", [0.0, 1.0])
         info8 = self.info(inhor, [False, True, False])
 
-        fill = elm.Box(self.win)
-        self.size_hints(fill)
-        infobox.pack_end(fill)
-        fill.show()
+        storinfo = elm.Box(self.win)
+        self.size_hints(storinfo, [1.0, 1.0])
+        infobox.pack_end(storinfo)
+        storinfo.show()
 
         genmeminfo(None)
+
+        self.separator(storinfo)
+
+        from generalmem import moduleArrayInfo
+        genmod = moduleArrayInfo()
+
+        def ch(hs, z):
+            hor.clear()
+            for i, x in enumerate(memoryDevices):
+                if x == z:
+                    hs.text_set("Memory Device %s"%(i+1))
+                    self.lst(hor, genmod.module_list(i))
+                    break
+
+        memoryDevices = []
+
+        hs = elm.Hoversel(self.win)
+        hs.hover_parent_set(self.win)
+
+        hs.text_set("Memory Device 1")
+        for i in range(genmod.module_number()):
+            memoryDevices.append(hs.item_add("Memory Device %s"%(i+1)))
+        hs.callback_selected_add(ch)
+        self.size_hints(hs, [1.0, 0.0])
+        storinfo.pack_end(hs)
+        hs.show()
+
+        hor = self.box(storinfo, [1.0,1.0])
+        self.lst(hor, genmod.module_list())
 
 
 #---------STORAGE
@@ -637,57 +666,40 @@ class eInfo(object):
         self.storage_devices(infobox)
 
     def storage_devices(self, infobox):
-        def genstorinfo(i):
-            genstor.vendor(info0, i)
-            genstor.model(info1, i)
-            genstor.revision(info2, i)
+        from generalstor import Storage_info
+        genstor = Storage_info(True)
 
         def ch(hs, z):
-            for i, x in enumerate(ALPHA):
-                if ALPHA[i] == z:
-                    hs.text_set(STOR[i])
-                    genstorinfo(i)
+            hor.clear()
+            for i, x in enumerate(storageDevices):
+                if x == z:
+                    hs.text_set("Storage Device %s (%s)"%(str(i+1),genstor.devices()[0]))
+                    self.lst(hor, genstor.return_list(i))
                     break
 
-        from generalstor import Storage_info
-        genstor = Storage_info()
-
-        STOR = ["scsi0", "scsi1", "scsi2", "scsi3", "scsi4", "scsi5", "scsi6", "scsi7"]
-        ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h"]
-        NUM = genstor.number()
+        storageDevices = []
 
         hs = elm.Hoversel(self.win)
         hs.hover_parent_set(self.win)
-        hs.text_set("scsi0")
-        for i in range(NUM):
-            ALPHA[i] = hs.item_add(STOR[i])
+
+        hs.text_set("Storage Device 1 (%s)"%genstor.devices()[0])
+        for i in range(genstor.number()):
+            storageDevices.append(hs.item_add("Storage Device %s (%s)"%(str(i+1),genstor.devices()[i])))
         hs.callback_selected_add(ch)
         self.size_hints(hs, [1.0, 0.0])
         infobox.pack_end(hs)
         hs.show()
 
         storinfo = elm.Box(self.win)
-        self.size_hints(storinfo, [1.0, 0.0])
+        self.size_hints(storinfo, [1.0, 1.0])
         infobox.pack_end(storinfo)
         storinfo.show()
 
-        hor = self.box(storinfo)
+        hor = self.box(storinfo, [1.0,1.0])
 
-        inhor = self.box(hor)
-        self.label(inhor, "Vendor:")
-        info0 = self.info(inhor, [False, True, False])
+        self.lst(hor, genstor.return_list())
 
-        inhor = self.box(hor)
-        self.label(inhor, "Model:")
-        info1 = self.info(inhor, [False, True, False])
-
-        inhor = self.box(hor)
-        self.label(inhor, "Rev:")
-        info2 = self.info(inhor, [False, True, False])
-
-        self.separator(storinfo)
-
-        genstorinfo(0)
+        #~ self.separator(storinfo)
 
 
 #---------HARDWARE
@@ -698,8 +710,6 @@ class eInfo(object):
         from generalhw import Hardware_Info
         hwinfo = Hardware_Info()
 
-        ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h"]
-
         conbox = self.box(infobox, [1.0, 1.0])
         conbox.horizontal_set(False)
 
@@ -707,11 +717,11 @@ class eInfo(object):
 
         def sys():
             def ch(hs, z):
-                for i, x in enumerate(ALPHA):
-                    if ALPHA[i] == z:
-                        hs.text_set(moboname[i])
+                for x in systemFx.keys():
+                    if systemFx[x][-1] == z:
+                        hs.text_set(x)
                         lstbox.clear()
-                        self.lst(lstbox, moboinfo[i]())
+                        self.lst(lstbox, systemFx[x][0]())
                         break
 
             conbox.clear()
@@ -728,19 +738,27 @@ class eInfo(object):
 
             self.lst(lstbox, hwinfo.mobo_info())
 
-            moboname = ["Motherboard Information", "BIOS Information", "System Unit Information", "Memory Information", "PCI Device Information", "USB Device Information", "Battery Information"]
-            moboinfo = [hwinfo.mobo_info, hwinfo.bios_info, hwinfo.sys_info, hwinfo.mem_info, hwinfo.pci_info, hwinfo.usb_info, hwinfo.bat_info]
+            systemFx = {}
+            systemFx['Motherboard Information']     = [hwinfo.mobo_info]
+            systemFx['BIOS Information']            = [hwinfo.bios_info]
+            systemFx['System Unit Information']     = [hwinfo.sys_info]
+            systemFx['Memory Information']          = [hwinfo.mem_info]
+            systemFx['PCI Device Information']      = [hwinfo.pci_info]
+            systemFx['USB Device Information']      = [hwinfo.usb_info]
+            systemFx['Battery Information']         = [hwinfo.bat_info]
+            systemFx['System Slot Information']     = [hwinfo.systemSlotInformation]
+            systemFx['Onboard Device Information']  = [hwinfo.onboardDeviceInformation]
 
-            for i in range(6):
-                ALPHA[i] = hs.item_add(moboname[i])
+            for x in systemFx.keys():
+                systemFx[x].append(hs.item_add(x))
 
         def vid():
             def ch(hs, z):
-                for i, x in enumerate(ALPHA):
-                    if ALPHA[i] == z:
-                        hs.text_set(moboname[i])
+                for x in videoFx.keys():
+                    if videoFx[x][-1] == z:
+                        hs.text_set(x)
                         lstbox.clear()
-                        self.lst(lstbox, moboinfo[i]())
+                        self.lst(lstbox, videoFx[x][0]())
                         break
 
             conbox.clear()
@@ -757,19 +775,20 @@ class eInfo(object):
 
             self.lst(lstbox, hwinfo.vid_info())
 
-            moboname = ["Video Port Information", "Video Device Information"]
-            moboinfo = [hwinfo.vid_info, hwinfo.vid_dev_info]
+            videoFx = {}
+            videoFx['Video Port Information'] = [hwinfo.vid_info]
+            videoFx['Video Device Information'] = [hwinfo.vid_dev_info]
 
-            for i in range(2):
-                ALPHA[i] = hs.item_add(moboname[i])
+            for x in videoFx.keys():
+                videoFx[x].append(hs.item_add(x))
 
         def aud():
             def ch(hs, z):
-                for i, x in enumerate(ALPHA):
-                    if ALPHA[i] == z:
-                        hs.text_set(moboname[i])
+                for x in audioFx.keys():
+                    if audioFx[x][-1] == z:
+                        hs.text_set(x)
                         lstbox.clear()
-                        self.lst(lstbox, moboinfo[i]())
+                        self.lst(lstbox, audioFx[x][0]())
                         break
 
             conbox.clear()
@@ -786,19 +805,20 @@ class eInfo(object):
 
             self.lst(lstbox, hwinfo.aud_info())
 
-            moboname = ["Audio Port Information", "Audio Device Information"]
-            moboinfo = [hwinfo.aud_info, hwinfo.aud_dev_info]
+            audioFx = {}
+            audioFx['Audio Port Information'] = [hwinfo.aud_info]
+            audioFx['Audio Device Information'] = [hwinfo.aud_dev_info]
 
-            for i in range(2):
-                ALPHA[i] = hs.item_add(moboname[i])
+            for x in audioFx.keys():
+                audioFx[x].append(hs.item_add(x))
 
         def net():
             def ch(hs, z):
-                for i, x in enumerate(ALPHA):
-                    if ALPHA[i] == z:
-                        hs.text_set(moboname[i])
+                for x in networkFx.keys():
+                    if networkFx[x][-1] == z:
+                        hs.text_set(x)
                         lstbox.clear()
-                        self.lst(lstbox, moboinfo[i]())
+                        self.lst(lstbox, networkFx[x][0]())
                         break
 
             conbox.clear()
@@ -815,19 +835,22 @@ class eInfo(object):
 
             self.lst(lstbox, hwinfo.net_info())
 
-            moboname = ["Network Port Information", "Network Device Information", "Local Network Information", "Remote Network Information"]
-            moboinfo = [hwinfo.net_info, hwinfo.net_dev_info, hwinfo.net_int_loc_info, hwinfo.net_int_rem_info]
+            networkFx = {}
+            networkFx['Network Port Information'] = [hwinfo.net_info]
+            networkFx['Network Device Information'] = [hwinfo.net_dev_info]
+            networkFx['Local Network Information'] = [hwinfo.net_int_loc_info]
+            networkFx['Remote Network Information'] = [hwinfo.net_int_rem_info]
 
-            for i in range(4):
-                ALPHA[i] = hs.item_add(moboname[i])
+            for x in networkFx.keys():
+                networkFx[x].append(hs.item_add(x))
 
 
 
 
         tb = elm.Toolbar(self.win)
         tb.item_append("", "System",   lambda x,y: sys())
-        tb.item_append("", "Video",    lambda x,y: vid())
-        tb.item_append("", "Audio",    lambda x,y: aud())
+        #~ tb.item_append("", "Video",    lambda x,y: vid())
+        #~ tb.item_append("", "Audio",    lambda x,y: aud())
         tb.item_append("", "Network",  lambda x,y: net())
         #~ tb.item_append("", "USB/Input")
         tb.homogeneous_set(True)
@@ -880,6 +903,7 @@ class eInfo(object):
             self.size_hints(lab, weight, align)
         hor.pack_end(lab)
         lab.show()
+        return lab
 
     def info(self, hor, options, weight=False, align=False):
         info = elm.Entry(self.win)

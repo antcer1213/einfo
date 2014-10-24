@@ -54,7 +54,10 @@ class Memory_Info():
                 break
         used = total - free
 
-        return used/total
+        try:
+            return used/total
+        except:
+            return 0
 
     def memtotal(self, entry=False):
         scale = self.scale
@@ -64,7 +67,10 @@ class Memory_Info():
 
         if scale == "GB":
             total = '{:,}'.format(Decimal(total)/1048576)
-            entry.entry_set("%s GB" % total)
+            if entry:
+                entry.entry_set("%s GB" % total)
+            else:
+                return "%s GB" %total
         elif scale == "MB":
             total = '{:,}'.format(total/1024)
             if entry:
@@ -270,3 +276,86 @@ class Memory_Info():
         else:
             inact = '{:,}'.format(inact)
             entry.entry_set("%s KB" % inact)
+
+
+class moduleArrayInfo():
+    def __init__(self):
+        self.module_information()
+
+    def module_number(self):
+        try:
+            return self.num
+        except:
+            import dmidecode
+            self.num = len(dmidecode.QueryTypeId(17))
+            return self.num
+    def array_number(self):
+        try:
+            return self.arraynum
+        except:
+            import dmidecode
+            self.arraynum = len(dmidecode.QueryTypeId(16))
+            return self.arraynum
+
+    def modules_in_use(self):
+        return self.in_use
+
+    def modules_total(self, scale="MB"):
+        if scale=="MB":
+            return self.mods_total
+        else:
+            return Decimal(self.mods_total)/1024
+
+    def module_information(self, quantity=False, array=False, sticks=False, i=False):
+        import dmidecode
+        self.in_use = 0
+        self.mods_total = 0
+        data = {}
+        module_data = dmidecode.QueryTypeId(17)
+        array_data = dmidecode.QueryTypeId(16)
+
+        for h, v in enumerate(module_data.keys()):
+            data['Memory Device %s'%(h+1)] = {}
+            data['Memory Device %s'%(h+1)]['Size'] = module_data[v]['data']['Size']
+            if module_data[v]['data']['Size'] != "":
+                self.mods_total += int(module_data[v]['data']['Size'].split()[0])
+                self.in_use += 1
+            data['Memory Device %s'%(h+1)]['Form Factor'] = module_data[v]['data']['Form Factor']
+            data['Memory Device %s'%(h+1)]['Type'] = module_data[v]['data']['Type']
+            data['Memory Device %s'%(h+1)]['Speed'] = module_data[v]['data']['Speed']
+            data['Memory Device %s'%(h+1)]['Manufacturer'] = module_data[v]['data']['Manufacturer']
+            data['Memory Device %s'%(h+1)]['Locator'] = module_data[v]['data']['Locator']
+            data['Memory Device %s'%(h+1)]['Bank Locator'] = module_data[v]['data']['Bank Locator']
+            data['Memory Device %s'%(h+1)]['Data Width'] = module_data[v]['data']['Data Width']
+            data['Memory Device %s'%(h+1)]['Total Width'] = module_data[v]['data']['Total Width']
+            data['Memory Device %s'%(h+1)]['Serial Number'] = module_data[v]['data']['Serial Number']
+            data['Memory Device %s'%(h+1)]['Part Number'] = module_data[v]['data']['Part Number']
+            #~ mem.append("Configured Clock Speed: %s" %(v['data']['Configured Clock Speed']))
+            #~ mem.append("Rank: %s" %(v['data']['Rank']))
+            data['Memory Device %s'%(h+1)]['Type Detail'] = module_data[v]['data']['Type Detail']
+        for h, v in enumerate(array_data.keys()):
+            data['Memory Array %s'%(h+1)] = {}
+            data['Memory Array %s'%(h+1)]['Location'] = array_data[v]['data']['Location']
+            data['Memory Array %s'%(h+1)]['Use'] = array_data[v]['data']['Use']
+            data['Memory Array %s'%(h+1)]['Error Correction Type'] = array_data[v]['data']['Error Correction Type']
+            data['Memory Array %s'%(h+1)]['Maximum Capacity'] = array_data[v]['data']['Maximum Capacity']
+            data['Memory Array %s'%(h+1)]['Number of Possible Devices'] = array_data[v]['data']['Number Of Devices']
+            data['Memory Array %s'%(h+1)]['Number of Current Devices'] = self.modules_in_use()
+
+        self.full_data = data
+
+    def module_list(self, i=0):
+        data = self.full_data
+        list_items = []
+        for key in data['Memory Device %s'%(i+1)].keys():
+            if key == "Type Detail":
+                list_items.append("Type Detail:")
+                for it in data['Memory Device %s'%(i+1)][key]:
+                    if it != None:
+                        list_items.append("    %s"%it)
+            else:
+                if data['Memory Device %s'%(i+1)][key] != "":
+                    list_items.append("%s : %s"%(key,data['Memory Device %s'%(i+1)][key]))
+
+        return list_items
+
